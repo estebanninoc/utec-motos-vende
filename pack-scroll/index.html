@@ -768,7 +768,7 @@ document.addEventListener('click',function(ev){
   function up(){
     var k = ca.checked&&cb.checked ? 'ab' : ca.checked ? 'a' : cb.checked ? 'b' : 'base';
     var t='US$'+PR[k]; window.__precioUSD=PR[k];
-    btn.href=conRef(LINKS[k]); btn.textContent='Quiero mi acceso ahora · '+t+' →';
+    btn.href=conRef(LINKS[k]); btn.textContent='Quiero el pack →';
     big.textContent=t; document.getElementById('buybar-precio').textContent=t;
     document.getElementById('bump-a').classList.toggle('on',ca.checked);
     document.getElementById('bump-b').classList.toggle('on',cb.checked);
