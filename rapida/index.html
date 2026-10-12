@@ -557,8 +557,10 @@
               <!-- ORDEN de Esteban 2026-10-12: los 3 clips del carrusel se juntaron en
                    UNO (vid/hero.mp4, 9.000 s = 3 segmentos de 3 s, el mismo ciclo que
                    dvSlide/dvThumb/dvFill). 3 peticiones -> 1 y -38% de bytes. Va DEBAJO
-                   de los .slide, que siguen llevando el rotulo y el pie de cada segmento. -->
-              <video class="hero-uno" src="vid/hero.mp4" poster="vid/hero.webp" muted loop playsinline autoplay preload="auto"></video>
+                   de los .slide, que siguen llevando el rotulo y el pie de cada segmento.
+                   El poster es vid/g1.webp, que la pagina YA descarga como thumbnail t1: un
+                   hero.webp propio era el MISMO archivo byte a byte y costaba una peticion mas. -->
+              <video class="hero-uno" src="vid/hero.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="auto"></video>
               <div class="slide s1">
                 <span class="tag">Árbol de levas</span>
                 <div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
