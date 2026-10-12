@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOTOS PRO: +1.200 manuales de taller de +90 marcas · con el diagrama eléctrico de tu moto</title>
-<meta name="description" content="La biblioteca de taller de +90 marcas: +1.200 manuales con despiece, tablas de torque y diagramas eléctricos, más el curso de mecánica 2T y 4T desde cero. Busca tu marca, tu modelo y tu año. Pago único $15.000.">
+<title>MOTOS PRO: más de 1.200 manuales de taller de más de 90 marcas · con el diagrama eléctrico de tu moto</title>
+<meta name="description" content="La biblioteca de taller de más de 90 marcas: más de 1.200 manuales con despiece, tablas de torque y diagramas eléctricos, más el curso de mecánica 2T y 4T desde cero. Busca tu marca, tu modelo y tu año. Pago único de US$12.99, con 80% de descuento.">
 <meta name="theme-color" content="#000000">
-<meta property="og:title" content="MOTOS PRO: +1.200 manuales de taller de +90 marcas">
-<meta property="og:description" content="Despiece, torque y diagramas eléctricos de +90 marcas, más el curso de mecánica 2T y 4T. Pago único $15.000.">
+<meta property="og:title" content="MOTOS PRO: más de 1.200 manuales de taller de más de 90 marcas">
+<meta property="og:description" content="Despiece, torque y diagramas eléctricos de más de 90 marcas, más el curso de mecánica 2T y 4T. Pago único de US$12.99, con 80% de descuento.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://estebanninoc.github.io/utec-motos-vende/rapida/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -231,7 +231,7 @@
   .ancla .off{background:#fff;color:#000;font-family:var(--disp);font-weight:900;font-size:.9rem;letter-spacing:-.01em;padding:5px 11px;border-radius:999px;white-space:nowrap}
   .reloj{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;background:#17171a;border:1px dashed var(--red-tx);border-radius:12px;padding:10px 14px;margin:18px auto 20px;max-width:420px}
   .reloj .rl{color:var(--mut);font-size:.85rem}
-  .reloj b{font-family:var(--disp);font-weight:900;font-size:1.2rem;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .reloj b{font-family:var(--disp);font-weight:900;font-size:1.2rem;color:var(--red-tx);font-variant-numeric:tabular-nums;letter-spacing:.02em}
   .price-now{font-family:var(--disp);font-size:3.6rem;font-weight:900;line-height:1;margin:6px 0 4px;letter-spacing:-.04em}
   .price-per{display:inline-block;background:#17171a;border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:.85rem;font-weight:700;color:var(--mut);margin-top:12px}
   .price-per b{color:#fff}
@@ -503,7 +503,7 @@
   window.CU_EV = function(nombre, extra){
     if(typeof fbq !== "function") return;
     var d = { content_type:"product", content_ids:['motos-pack-base'],
-              value:(parseInt(String(window.__precioCOP||'').replace(/[^0-9]/g,''),10)||15000), currency:"COP" };
+              value:(parseFloat(window.__precioUSD)||12.99), currency:"USD" };
     if(extra) for(var k in extra) d[k] = extra[k];
     try{ fbq("track", nombre, d); }catch(e){}
   };
@@ -513,13 +513,18 @@
      con este numero. */
   window.CU_EV('ViewContent', { content_name: 'MOTOS PRO - 962 manuales de taller + curso 2T/4T' });
 
-  /* Contact en el boton. El precio sale de window.__precio*, NUNCA de la
-     pantalla: el texto visible esta en moneda local y mandaria un value falso
-     (curado en CapCut el 28-sep). */
+  /* ORDEN 12-oct: el boton ya no abre un chat, abre el checkout de Stripe ⇒ el
+     evento que corresponde es InitiateCheckout (el mismo que ya usa pack-scroll;
+     asi las dos paginas son comparables). Contact se queda pero SOLO donde de
+     verdad hay un contacto: el enlace de soporte por WhatsApp.
+     El precio sale de window.__precio*, NUNCA de la pantalla: el texto visible
+     esta en moneda local y mandaria un value falso (curado en CapCut el 28-sep). */
   document.addEventListener('click', function(e){
-    var a = e.target.closest ? e.target.closest('[data-buy]') : null;
-    if(!a) return;
-    try{ window.CU_EV('Contact'); }catch(x){}
+    if(!e.target.closest) return;
+    var a = e.target.closest('[data-buy]');
+    if(a){ try{ window.CU_EV('InitiateCheckout'); }catch(x){} return; }
+    var s = e.target.closest('[data-soporte]');
+    if(s){ try{ window.CU_EV('Contact'); }catch(x){} }
   }, true);
 })();
 </script>
@@ -529,7 +534,7 @@
 <nav>
   <div class="wrap">
     <div class="logo"><span class="mark"><img src="img/logo-mark.svg" alt="" width="30" height="30"></span>MOTOS<span class="sub">PRO</span></div>
-    <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn">Quiero el pack →</a>
+    <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">Quiero el pack →</a>
   </div>
 </nav>
 
@@ -537,17 +542,17 @@
   <div class="wrap">
     <div class="hero-grid">
       <div class="pill">🏍️ Tu marca y tu modelo · <b>Celular + PC</b></div>
-      <h1>+1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
-      <p class="sub">De <b>+90 marcas</b> y <b>+880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, KTM, TVS y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
+      <h1>Más de 1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
+      <p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, KTM, TVS y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
       <div class="cta-row">
-        <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn big" id="btn-hero">Quiero el pack →</a>
+        <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" id="btn-hero" data-buy="1">Quiero el pack →</a>
       </div>
-      <div class="cta-note">Pago único de $15.000 · Te llega por WhatsApp · Es tuyo para siempre</div>
+      <div class="cta-note">Pago único de US$12.99 (antes US$64.95) · Acceso inmediato · Es tuyo para siempre</div>
       <div class="trust-row">
         <span class="trust-chip">✅ Pago único</span>
         <span class="trust-chip">⚡ Acceso inmediato</span>
         <span class="trust-chip">🛡️ Garantía 7 días</span>
-        <span class="trust-chip">🏍️ 307 personas ya lo tienen</span>
+        <span class="trust-chip">🏍️ Más de 3.400 personas ya lo compraron</span>
       </div>
 
       <div class="device" aria-hidden="true">
@@ -589,15 +594,15 @@
   </div>
 
   <div class="marcas">
-    <p class="marcas-lb">Manuales de +90 marcas de motos</p>
+    <p class="marcas-lb">Manuales de más de 90 marcas de motos</p>
     <div class="cinta"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img src="img/logos/honda.svg" alt="Honda" width="33" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/suzuki.svg" alt="Suzuki" width="48" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bajaj.svg" alt="Bajaj" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/hero.svg" alt="Hero" width="99" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/akt.webp" alt="AKT" width="120" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/cfmoto.svg" alt="CFMoto" width="162" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bmw.svg" alt="BMW" width="32" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/harley-davidson.svg" alt="Harley-Davidson" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/aprilia.svg" alt="Aprilia" width="72" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bera.png" alt="Bera" width="53" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/husqvarna.svg" alt="Husqvarna" width="133" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/indian.svg" alt="Indian" width="71" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/keeway.svg" alt="Keeway" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kymco.svg" alt="Kymco" width="145" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/loncin.png" alt="Loncin" width="152" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/moto-guzzi.svg" alt="Moto Guzzi" width="91" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/motomel.png" alt="Motomel" width="56" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img src="img/logos/honda.svg" alt="" width="33" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/suzuki.svg" alt="" width="48" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bajaj.svg" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/hero.svg" alt="" width="99" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/akt.webp" alt="" width="120" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/cfmoto.svg" alt="" width="162" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bmw.svg" alt="" width="32" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/harley-davidson.svg" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/aprilia.svg" alt="" width="72" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bera.png" alt="" width="53" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/husqvarna.svg" alt="" width="133" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/indian.svg" alt="" width="71" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/keeway.svg" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kymco.svg" alt="" width="145" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/loncin.png" alt="" width="152" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/moto-guzzi.svg" alt="" width="91" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/motomel.png" alt="" width="56" height="26" decoding="async"></span></span></div></div>
     <div class="cinta cinta-rev"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img src="img/logos/yamaha.svg" alt="Yamaha" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kawasaki.svg" alt="Kawasaki" width="180" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/tvs.svg" alt="TVS" width="178" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ktm.svg" alt="KTM" width="103" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/italika.svg" alt="Italika" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vento.svg" alt="Vento" width="156" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/gilera.svg" alt="Gilera" width="22" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/sym.svg" alt="SYM" width="81" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vespa.svg" alt="Vespa" width="87" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ducati.svg" alt="Ducati" width="30" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/mv-agusta.svg" alt="MV Agusta" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/piaggio.svg" alt="Piaggio" width="23" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/royal-enfield.svg" alt="Royal Enfield" width="70" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/shineray.png" alt="Shineray" width="147" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/triumph.svg" alt="Triumph" width="95" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zanella.png" alt="Zanella" width="60" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zongshen.png" alt="Zongshen" width="37" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img src="img/logos/yamaha.svg" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kawasaki.svg" alt="" width="180" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/tvs.svg" alt="" width="178" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ktm.svg" alt="" width="103" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/italika.svg" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vento.svg" alt="" width="156" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/gilera.svg" alt="" width="22" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/sym.svg" alt="" width="81" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vespa.svg" alt="" width="87" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ducati.svg" alt="" width="30" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/mv-agusta.svg" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/piaggio.svg" alt="" width="23" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/royal-enfield.svg" alt="" width="70" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/shineray.png" alt="" width="147" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/triumph.svg" alt="" width="95" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zanella.png" alt="" width="60" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zongshen.png" alt="" width="37" height="26" decoding="async"></span></span></div></div>
   </div>
 
   <div class="wrap">
     <div class="badges">
-      <div class="badge"><div class="n">+1.200</div><div class="l">manuales de taller</div></div>
-      <div class="badge"><div class="n">+90</div><div class="l">marcas de motos</div></div>
+      <div class="badge"><div class="n"><span style="font-size:.5em;font-weight:800;letter-spacing:normal">Más de&nbsp;</span>1.200</div><div class="l">manuales de taller</div></div>
+      <div class="badge"><div class="n"><span style="font-size:.5em;font-weight:800;letter-spacing:normal">Más de&nbsp;</span>90</div><div class="l">marcas de motos</div></div>
       <div class="badge"><div class="n">49<span style="font-size:.9rem"> GB</span></div><div class="l">de contenido</div></div>
       <div class="badge"><div class="n">2T·4T</div><div class="l">motores cubiertos</div></div>
     </div>
@@ -627,25 +632,25 @@
     <h2 class="title">Un solo pago. Acceso de por vida.</h2>
     <div class="price-card">
       <div class="price-label">Precio de hoy</div>
-      <div class="ancla"><s id="anc-lista">&nbsp;</s><span class="off" id="anc-off">&nbsp;</span></div>
-      <div class="price-now" id="precio-grande">$15.000</div>
+      <div class="ancla"><s id="anc-lista">US$64.95</s><span class="off" id="anc-off">80% OFF</span></div>
+      <div class="price-now" id="precio-grande">US$12.99</div>
       <div class="price-per">pago único · <b>acceso de por vida</b></div>
       <ul class="price-list">
-        <li><b>+1.200 manuales</b> de taller de <b>+90 marcas</b></li>
+        <li><b>Más de 1.200 manuales</b> de taller de <b>más de 90 marcas</b></li>
         <li><b>Diagramas eléctricos</b>: ramal, encendido y arranque</li>
         <li>Despiece y montaje, con el torque de cada tornillo</li>
         <li><b>Curso de Mecánica 2T y 4T desde cero</b> (2 módulos)</li>
         <li>Cuatrimoto, Torito Bajaj y Motocarro, incluidos</li>
         <li>Bonos incluidos: Polarizado, Aire Acondicionado, Bicicleta, Pintura</li>
-        <li>Acceso inmediato a tu carpeta privada, por WhatsApp</li>
+        <li>Acceso inmediato a tu carpeta privada, apenas pagas</li>
         <li>Garantía de 7 días sin preguntas</li>
       </ul>
       <!-- ORDEN 12-oct: el contador baja del hero a #comprar (pegado al precio, arriba
            del boton): la urgencia decide aca, no en la primera pantalla. Nodo MOVIDO,
            no duplicado — el JS escribe en #reloj-d y solo puede haber uno. -->
       <div class="reloj" id="reloj"><span class="rl">La oferta termina en</span><b id="reloj-d">--:--</b></div>
-      <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn big" id="btn-pago" data-buy="1">Completar mi compra →</a>
-      <div class="cta-note">Te atendemos por WhatsApp · Acceso inmediato tras confirmar el pago</div>
+      <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" id="btn-pago" data-buy="1">Completar mi compra →</a>
+      <div class="cta-note">Pago seguro con tarjeta · Acceso inmediato · ¿Dudas con tu moto? <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" data-soporte="1" style="color:inherit;text-decoration:underline">Escríbenos por WhatsApp</a></div>
   <div class="pay-row">
     <span class="pay-chip"><svg width="30" height="16" viewBox="0 0 30 16" role="img" aria-label="Visa"><text x="0" y="13" font-family="Arial,Helvetica,sans-serif" font-style="italic" font-weight="900" font-size="15" letter-spacing="-.5" fill="currentColor">VISA</text></svg></span>
     <span class="pay-chip"><svg width="20" height="16" viewBox="0 0 20 16" aria-hidden="true"><circle cx="7" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="13" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>Mastercard</span>
@@ -730,7 +735,7 @@
     <p class="lead">Lo que ves es lo que hay.</p>
     <div class="acc">
       <details open>
-        <summary><span>1 · Manuales de taller por marca</span><span class="meta">+1.200 manuales · +90 marcas</span></summary>
+        <summary><span>1 · Manuales de taller por marca</span><span class="meta">más de 1.200 manuales · más de 90 marcas</span></summary>
         <div class="acc-body"><p>Yamaha (381), Honda (159), Bajaj (130), Kawasaki (106), Suzuki (68), AKT (38), TVS (37), KTM (36), Kymco (26), SYM (23), Hero (23), Victory (20), Italika (19), BMW (15), CFMoto (14), Benelli (13), Harley-Davidson (13), Aprilia (12), Ducati (9) y muchas marcas más. El número entre paréntesis es cuántos manuales hay de esa marca, contados en la carpeta. Despiece, montaje y diagramas eléctricos.</p></div>
       </details>
       <details>
@@ -750,7 +755,7 @@
     </div>
 
     <div class="entrega">
-      <div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p>$15.000, sin mensualidades. Escribes por WhatsApp y te pasamos los medios de pago.</p></div>
+      <div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p>US$12.99, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
       <div class="step"><div class="num">2</div><h3>Recibes el acceso al instante</h3><p>Te llega el enlace a tu carpeta privada apenas se confirma el pago.</p></div>
       <div class="step"><div class="num">3</div><h3>Buscas tu moto y la arreglas</h3><p>PDF por marca y modelo. Se abre en el celular, incluso sin internet.</p></div>
     </div>
@@ -764,9 +769,9 @@
     <div class="eyebrow">Preguntas frecuentes</div>
     <h2 class="title">Lo que todos preguntan</h2>
     <div class="acc">
-<details><summary><span>¿Sirve para mi moto?</span></summary><div class="acc-body">Son <b>+1.200 manuales</b> de <b>+90 marcas</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, TVS, KTM, Kymco, SYM, Hero, Victory, Italika, BMW, CFMoto, Benelli, Harley-Davidson, Aprilia, Ducati, Royal Enfield, Triumph, Can-Am, Keeway, Longjia, Vento, Tekken, Haojue, Husqvarna, Piaggio, Corven y muchas más. Escríbenos tu marca y modelo por WhatsApp y te confirmamos antes de que pagues.</div></details>
+<details><summary><span>¿Sirve para mi moto?</span></summary><div class="acc-body">Son <b>más de 1.200 manuales</b> de <b>más de 90 marcas</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, TVS, KTM, Kymco, SYM, Hero, Victory, Italika, BMW, CFMoto, Benelli, Harley-Davidson, Aprilia, Ducati, Royal Enfield, Triumph, Can-Am, Keeway, Longjia, Vento, Tekken, Haojue, Husqvarna, Piaggio, Corven y muchas más. Escríbenos tu marca y modelo <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" data-soporte="1" style="color:inherit">por WhatsApp</a> y te confirmamos antes de que pagues.</div></details>
   <details><summary><span>¿Necesito experiencia en mecánica?</span></summary><div class="acc-body">No. El manual te muestra cada pieza y el orden para desarmar y armar, paso a paso.</div></details>
-  <details><summary><span>¿Es un pago único?</span></summary><div class="acc-body">Sí. <b id="faq-precio">$15.000</b> una sola vez, acceso de por vida y 7 días de garantía: si no te sirve, te devolvemos el dinero.</div></details>
+  <details><summary><span>¿Es un pago único?</span></summary><div class="acc-body">Sí. <b id="faq-precio">US$12.99</b> una sola vez, acceso de por vida y 7 días de garantía: si no te sirve, te devolvemos el dinero.</div></details>
   <details><summary><span>¿Cómo recibo los manuales?</span></summary><div class="acc-body">Apenas pagas te llega el acceso. Son PDF que abres en el celular o el PC, y funcionan sin internet una vez descargados.</div></details>
     </div>
   </div>
@@ -781,13 +786,13 @@
   <div class="wrap" style="text-align:center">
     <div class="eyebrow">Último paso</div>
     <h2 class="title">Escríbenos tu marca y tu modelo</h2>
-    <p class="lead" style="margin:0 auto">Te confirmamos que el manual de tu moto está dentro <b>antes</b> de que pagues. Un solo pago de $15.000 y la carpeta es tuya para siempre.</p>
+    <p class="lead" style="margin:0 auto">Te confirmamos que el manual de tu moto está dentro <b>antes</b> de que pagues. Un solo pago de US$12.99 y la carpeta es tuya para siempre.</p>
     <div class="price-card">
       <div class="price-label">Precio de hoy</div>
-      <div class="price-now">$15.000</div>
+      <div class="price-now">US$12.99</div>
       <div class="price-per">pago único · <b>acceso de por vida</b></div>
-      <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn big">Quiero el pack →</a>
-      <div class="price-per">307 personas ya lo tienen · garantía de 7 días</div>
+      <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" data-buy="1">Quiero el pack →</a>
+      <div class="price-per">Más de 3.400 personas ya lo compraron · garantía de 7 días</div>
     </div>
   </div>
 </section>
@@ -801,8 +806,8 @@
 </footer>
 
 <div class="buybar" id="buybar">
-  <div class="p"><span id="buybar-precio">$15.000</span><small>pago único · acceso inmediato</small></div>
-  <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn">Quiero el pack →</a>
+  <div class="p"><span id="buybar-precio">US$12.99</span><small>pago único · acceso inmediato</small></div>
+  <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">Quiero el pack →</a>
 </div>
 
 <script>
@@ -820,17 +825,22 @@
 
 /* precio + bonos */
 (function(){
-  /* OBRA motos-estructura-venta (2026-10-12): un solo link y un solo precio.
-     - El canal es WhatsApp: es por donde UTEC YA cobra motos a $15.000 (ad vivo
-       120249542240480097 + 315 ventas en sales). Stripe va de ultimas, por orden.
-     - ANTES=null a proposito: NO hay un precio de lista medido para motos, y
-       pintarAncla ya se calla solo cuando no hay un `antes` mayor. Antes callarse
-       que inventar un -57%.
-     - Se fueron los bumps: cobraban +US$1.99 por bonos que YA van dentro del pack
-       (carpetas 04/05/06 del mismo Drive) y en otra moneda. */
-  var LINKS={base:'https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS'};
-  var PR={base:'15.000'};
-  var ANTES={base:null};
+  /* ORDEN DE ESTEBAN 2026-10-12: el precio son US$12.99 con 80% de descuento, y el
+     canal de COMPRA pasa de WhatsApp al checkout de Stripe que ya existe y ya cobra
+     (price_1UPh53CkKktoiQEZYREwwEVF = 1299 usd, leido por API antes de publicar).
+     WhatsApp queda como SOPORTE, con su propio enlace al lado del boton.
+     - El ancla NO se inventa: sale de la aritmetica exacta de su propio 80%,
+       12.99 / 0.20 = 64.95. Medido en V8: Math.floor(100*(1-12.99/64.95)) === 80,
+       sin coma flotante sucia. Si alguien cambia PR y el ancla deja de dar el 80%,
+       pintarAncla publica el porcentaje REAL calculado, nunca el 80 de memoria.
+     - ⚠️ TRAMPA PAGADA: en COP el punto era separador de miles, y parseFloat del
+       precio viejo daba 15 en vez de quince mil. En USD el punto SI es decimal:
+       parseFloat('12.99') === 12.99 ⇒ sirve directo. Por eso
+       este bloque pasa a USD entero y el pixel deja de rasparle los no-digitos
+       (raspar '12.99' daba 1299 — mil veces el precio, y en la moneda equivocada). */
+  var LINKS={base:'https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c'};
+  var PR={base:'12.99'};
+  var ANTES={base:'64.95'};
   function pintarAncla(k){
     var c=document.querySelector('.ancla'), lis=document.getElementById('anc-lista'), off=document.getElementById('anc-off');
     if(!c) return;
@@ -840,7 +850,7 @@
     var pct=Math.floor(100*(1-h/s));
     c.style.display='';
     lis.textContent='US$'+antes;
-    off.textContent='-'+pct+'%';
+    off.textContent=pct+'% OFF';
   }
   var REF=null;
   try{
@@ -852,15 +862,22 @@
   }catch(e){}
   /* OJO: a wa.me NO se le cuelga nada. El `text=QUIERO INFO MOTOS` es el
      disparador textual del bot vendedor; un parametro de mas es tocar un
-     sistema vivo. La atribucion de la landing queda como hueco DECLARADO. */
+     sistema vivo. Al checkout de Stripe SI se le cuelga client_reference_id:
+     es el unico campo que Stripe acepta y es el que ata la venta al anuncio. */
   function conRef(u){ if(u.charAt(0)==='#'||/wa\.me|api\.whatsapp\.com/.test(u)) return u;
     return REF ? u+(u.indexOf('?')<0?'?':'&')+'client_reference_id='+REF : u; }
   var btn=document.getElementById('btn-pago'), big=document.getElementById('precio-grande');
   function up(){
-    var k='base', t='$'+PR[k]; window.__precioCOP=PR[k];
+    var k='base', t='US$'+PR[k]; window.__precioUSD=PR[k];
     /* el href ya viene ESCRITO en el HTML; el JS lo confirma, no lo inventa:
-       si este bloque muere, el boton sigue llevando a WhatsApp igual. */
-    if(btn) btn.href=conRef(LINKS[k]);
+       si este bloque muere, el boton sigue llevando al checkout igual. */
+    /* los 5 botones de compra, no solo el de la caja: todos van al mismo checkout
+       y todos tienen que llevar la etiqueta de atribucion o la venta sale sin anuncio. */
+    var compras=document.querySelectorAll('a[data-buy]');
+    for(var j=0;j<compras.length;j++){
+      if(/buy\.stripe\.com/.test(compras[j].getAttribute('href')||'')) compras[j].href=conRef(LINKS[k]);
+    }
+    if(btn && !btn.getAttribute('data-buy')) btn.href=conRef(LINKS[k]);
     if(big) big.textContent=t;
     var bb=document.getElementById('buybar-precio'); if(bb) bb.textContent=t;
     var fp=document.getElementById('faq-precio'); if(fp) fp.textContent=t;
@@ -1136,6 +1153,18 @@ function initMotor(cfg){
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   /* want/cur viven en progreso de scroll 0..1 (t); draw()/LUT trabajan en posición de cuadro 1..N */
   var imgs=[], ok=[], loadedCount=0, allReady=false, want=0, cur=0, drawnPos=-1, running=false;
+  var pedido=[], grueso=false, fino=false;
+  /* ORDEN AZ5 / initEscena, copiado textual: si el cuadro exacto no esta listo se usa el
+     cuadro cargado mas CERCANO, en vez de congelar la escena. Es lo que permite que el
+     despiece vaya de corrido de punta a punta con una fraccion de los cuadros. */
+  function nearestLoaded(i){
+    if(ok[i]) return i;
+    for(var d=1; d<N; d++){
+      if(i-d>=1 && ok[i-d]) return i-d;
+      if(i+d<=N && ok[i+d]) return i+d;
+    }
+    return null;
+  }
   var W=0, H=0, lastWidth=window.innerWidth;
   function src(i){ return dir+'f_'+String(i).padStart(3,'0')+'.webp'; }
   function lutPos(p){
@@ -1153,11 +1182,20 @@ function initMotor(cfg){
   }
   function draw(pos,force){
     if(!imgs.length || !W || !H) return;
-    if(!allReady) pos=1;
+    /* ORDEN 12-oct ("tiene que ir de corrido"): se fue el `if(!allReady) pos=1`, que era
+       lo que clavaba la escena en el cuadro 1 hasta tener los 137 decodificados. Ahora se
+       dibuja la posicion que pide el scroll, con el cuadro cargado mas cercano.
+       FAIL-SAFE: si no cargo NI UN cuadro, nearestLoaded devuelve null y no se pinta nada
+       — el canvas queda como estaba, igual que hoy. Y lo que se dibuja es siempre un
+       cuadro COMPLETO (repetido si hace falta): jamas uno a medias. */
     if(!force && Math.abs(pos-drawnPos)<0.01) return; /* dibujar SOLO cuando cambia el cuadro */
     var i0=Math.floor(pos), frac=pos-i0, i1=i0+1;
     if(i0<1){ i0=1; i1=1; frac=0; } if(i1>N){ i1=N; if(i0>N) i0=N; }
-    if(!imgs[i0] || !ok[i0]) return;
+    if(!imgs[i0] || !ok[i0]){
+      i0=nearestLoaded(i0);
+      if(i0==null) return;   /* todavia no cargo ni un solo cuadro: nada que pintar */
+      i1=i0; frac=0;
+    }
     drawnPos=pos;
     ctx.drawImage(imgs[i0],0,0,W,H); /* cubre el canvas entero: no hace falta clearRect antes */
     if(i1!==i0 && frac>0.004 && imgs[i1] && ok[i1]){ ctx.globalAlpha=frac; ctx.drawImage(imgs[i1],0,0,W,H); ctx.globalAlpha=1; }
@@ -1167,12 +1205,41 @@ function initMotor(cfg){
     var im=new Image(); im.decoding='async'; im.src=src(i); imgs[i]=im;
     var mark=function(){
       if(imgs[i]!==im) return; ok[i]=true; loadedCount++;
-      if(i===1) draw(1,true); /* cuadro 1 visible en cuanto él esté listo, aunque falten los demás */
-      if(loadedCount>=N){ allReady=true; draw(lutPos(cur),true); }
+      if(loadedCount>=N) allReady=true;
+      /* cada cuadro que llega REFINA lo que ya se ve: se repinta la posicion actual
+         con force, porque drawnPos no cambio pero el material SI mejoro. */
+      draw(lutPos(cur),true);
     };
-    if(im.decode){ im.decode().then(mark, mark); } else { im.onload=mark; }
+    /* el onerror es un fallo REAL (404): sin el, en un navegador sin decode() el cuadro
+       quedaba fantasma para siempre. Mismo criterio que initEscena. */
+    if(im.decode){ im.decode().then(mark, mark); } else { im.onload=mark; im.onerror=mark; }
   }
-  function preloadAll(){ for(var i=1;i<=N;i++) load(i); }
+  /* ORDEN 12-oct: la carga se parte en DOS etapas y el orden es GRUESO A FINO.
+     Antes era 1,2,3...137 en una sola rafaga al abrir: 137 peticiones y 3,16 MB (medido a
+     360px) peleandose el ancho de banda con el hero y con la moto grande, y el despiece
+     igual no se movia hasta tener los 137.
+       - ETAPA GRUESA (al abrir): un cuadro cada 16 => 9 cuadros, ~0,2 MB. Con esos 9 el
+         recorrido COMPLETO ya es recorrible de punta a punta (nearestLoaded rellena los
+         huecos) => va de corrido desde el primer momento, grueso pero sin trabarse.
+       - ETAPA FINA (cuando el stage se acerca): pasos 8/4/2/1, cada pasada afina lo que
+         ya se ve. Mismo total de peticiones y de bytes: cambia CUANDO y en QUE ORDEN. */
+  function cola(pasos){
+    var q=[];
+    for(var pi=0; pi<pasos.length; pi++)
+      for(var k=1; k<=N; k+=pasos[pi]) if(!pedido[k]){ pedido[k]=1; q.push(k); }
+    if(pasos[pasos.length-1]===1 && !pedido[N]){ pedido[N]=1; q.push(N); }
+    return q;
+  }
+  function enTandas(q){
+    var c=0;
+    (function tanda(){
+      var fin=Math.min(q.length, c+8);
+      for(; c<fin; c++) load(q[c]);
+      if(c<q.length) setTimeout(tanda,60);
+    })();
+  }
+  function arrancarGrueso(){ if(grueso) return; grueso=true; enTandas(cola([16])); }
+  function arrancarFino(){ if(fino) return; fino=true; enTandas(cola([8,4,2,1])); }
   function anim(){
     var d=want-cur;
     if(Math.abs(d)<0.0015){ cur=want; draw(lutPos(cur),false); running=false; return; }
@@ -1200,11 +1267,22 @@ function initMotor(cfg){
     tick();
   }
   sizeCanvas();
-  draw(1,true); /* cuadro 1 visible desde ya, mientras decodifican los 137 */
-  preloadAll(); /* precarga TOTAL desde que abre la página: ya no compite con otras escenas */
-  if(reduced){ want=1; cur=1; return; } /* draw(1,true) + el gancho de mark() al quedar allReady ya muestran el cuadro final */
+  arrancarGrueso();  /* los 9 gruesos SI salen al abrir: son ~0,2 MB y son los que hacen que
+                        el despiece se mueva de punta a punta desde el segundo uno */
+  if(reduced){ arrancarFino(); want=1; cur=1; return; } /* sin movimiento: solo hace falta el cuadro final nitido */
   window.addEventListener('scroll',tick,{passive:true});
   window.addEventListener('resize',onResize);
+  /* los 128 cuadros de refino ya NO se piden al abrir. Medido a 360px: el stage del motor
+     vive en y=4221 con pantalla de 800, asi que con 2 pantallas de adelanto el refino
+     empieza a pedirse desde scrollY~1821, no desde 0.
+     FAIL-SAFE: sin IntersectionObserver se pide todo ya mismo (comportamiento de hoy). */
+  if('IntersectionObserver' in window){
+    var lead=Math.round(window.innerHeight*2)+'px';
+    var io=new IntersectionObserver(function(es){
+      for(var k=0;k<es.length;k++) if(es[k].isIntersecting){ arrancarFino(); io.disconnect(); break; }
+    },{rootMargin:lead+' 0px '+lead+' 0px'});
+    io.observe(stage);
+  } else { arrancarFino(); }
   tick();
 }
 initMotor({stage:'scr-motor-stage',canvas:'scr-motor-canvas',n:137,lut:LUT_MOTOR,
