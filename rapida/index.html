@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOTOS PRO: el manual de TU moto · 1.174 manuales de 30 marcas · $15.000</title>
-<meta name="description" content="El manual de taller de tu moto, con el diagrama eléctrico: 1.174 manuales de 30 marcas, despiece y tablas de torque. Pago único $15.000, acceso inmediato por WhatsApp.">
+<title>MOTOS PRO: 1.174 manuales de taller de 30 marcas · con el diagrama eléctrico de tu moto</title>
+<meta name="description" content="La biblioteca de taller de 30 marcas: 1.174 manuales con despiece, tablas de torque y diagramas eléctricos, más el curso de mecánica 2T y 4T desde cero. Busca tu marca, tu modelo y tu año. Pago único $15.000.">
 <meta name="theme-color" content="#000000">
-<meta property="og:title" content="MOTOS PRO: el manual de TU moto, con diagrama eléctrico">
-<meta property="og:description" content="1.174 manuales de taller de 30 marcas. Pago único $15.000.">
+<meta property="og:title" content="MOTOS PRO: 1.174 manuales de taller de 30 marcas">
+<meta property="og:description" content="Despiece, torque y diagramas eléctricos de 30 marcas, más el curso de mecánica 2T y 4T. Pago único $15.000.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://estebanninoc.github.io/utec-motos-vende/rapida/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -126,7 +126,7 @@
   /* CIFRAS */
   /* ORDEN AZ9: grid 2x2 fijo (antes 4 en fila en desktop, 2x2 solo en mobile) + número
      grande en rojo (antes azul solo en las 2 primeras, desde AZ1) — el azul de marca sigue
-     vivo en otras piezas del hero (pill, glow del reloj más abajo en #comprar) */
+     vivo en el pill del hero; el reloj paso a rojo el 12-oct, ya no usa --blue) */
   .badges{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:52px auto 0;max-width:480px}
   .badge{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 12px;text-align:center}
   .badge .n{font-family:var(--disp);font-size:clamp(1.6rem,4vw,2.3rem);font-weight:900;line-height:1;letter-spacing:-.03em;color:var(--red-tx)}
@@ -229,7 +229,7 @@
   .ancla{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 2px}
   .ancla s{color:var(--dim);font-family:var(--disp);font-weight:400;font-size:1.35rem;text-decoration-thickness:2px}
   .ancla .off{background:#fff;color:#000;font-family:var(--disp);font-weight:900;font-size:.9rem;letter-spacing:-.01em;padding:5px 11px;border-radius:999px;white-space:nowrap}
-  .reloj{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;background:#17171a;border:1px dashed var(--blue);border-radius:12px;padding:10px 14px;margin:18px auto 20px;max-width:420px}
+  .reloj{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;background:#17171a;border:1px dashed var(--red-tx);border-radius:12px;padding:10px 14px;margin:18px auto 20px;max-width:420px}
   .reloj .rl{color:var(--mut);font-size:.85rem}
   .reloj b{font-family:var(--disp);font-weight:900;font-size:1.2rem;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em}
   .price-now{font-family:var(--disp);font-size:3.6rem;font-weight:900;line-height:1;margin:6px 0 4px;letter-spacing:-.04em}
@@ -451,8 +451,8 @@ document.addEventListener('click',function(ev){
   <div class="wrap">
     <div class="hero-grid">
       <div class="pill">🏍️ Tu marca y tu modelo · <b>Celular + PC</b></div>
-      <h1>El manual de taller de <span class="cut">tu</span> moto.<br>Con su diagrama eléctrico.</h1>
-      <p class="sub"><b>1.174 manuales de taller</b> de <b>30 marcas</b> — Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, KTM, TVS… Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
+      <h1>1.174 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
+      <p class="sub">De <b>30 marcas</b> — Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, KTM, TVS… Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
       <div class="cta-row">
         <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn big" id="btn-hero">Quiero el pack →</a>
       </div>
@@ -462,7 +462,6 @@ document.addEventListener('click',function(ev){
         <span class="trust-chip">⚡ Acceso inmediato</span>
         <span class="trust-chip">🛡️ Garantía 7 días</span>
         <span class="trust-chip">🏍️ 307 personas ya lo tienen</span>
-        <div class="reloj" id="reloj"><span class="rl">La oferta termina en</span><b id="reloj-d">--:--</b></div>
       </div>
 
       <div class="device" aria-hidden="true">
@@ -551,6 +550,10 @@ document.addEventListener('click',function(ev){
         <li>Acceso inmediato a tu carpeta privada, por WhatsApp</li>
         <li>Garantía de 7 días sin preguntas</li>
       </ul>
+      <!-- ORDEN 12-oct: el contador baja del hero a #comprar (pegado al precio, arriba
+           del boton): la urgencia decide aca, no en la primera pantalla. Nodo MOVIDO,
+           no duplicado — el JS escribe en #reloj-d y solo puede haber uno. -->
+      <div class="reloj" id="reloj"><span class="rl">La oferta termina en</span><b id="reloj-d">--:--</b></div>
       <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" class="btn big" id="btn-pago" data-buy="1">Quiero el pack →</a>
       <div class="cta-note">Te atendemos por WhatsApp · Acceso inmediato tras confirmar el pago</div>
   <div class="pay-row">
