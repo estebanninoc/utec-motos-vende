@@ -986,6 +986,12 @@ function initEscena(cfg){
   var imgs=[], ok=[], loadedCount=0, allReady=false, want=1, cur=1, started=false, running=false, gen=0;
   var stickyTopPx=window.innerHeight*0.10, lastWidth=window.innerWidth;
   var READY_FRAC=0.9, READY_TIMEOUT_MS=4000; /* ORDEN AZ5: no esperar el 100% de los N cuadros */
+  /* ORDEN BA1: el servidor es HTTP/2 y MULTIPLEXA. La tanda por reloj (10 cada 60 ms) reparte los
+     pedidos en el TIEMPO pero NO limita cuantos avanzan A LA VEZ: con los 71 abiertos sobre
+     1,6 Mbit/s todos progresan juntos y el PRIMERO termina casi cuando terminan todos (medido:
+     15.000 ms hasta que la escena seguia al dedo). Con tope de cuadros EN VUELO el cuadro 1 se
+     lleva el ancho de banda entero y llega en decimas, y el resto entra detras, en orden. */
+  var CONC=6, enVuelo=0, pend=[], pedido=[], WD_MS=8000;
   function src(i){ return dir+'f_'+String(i).padStart(3,'0')+'.webp'; }
   /* ORDEN AZ5: si el cuadro exacto no está listo (hueco por decode() que nunca resolvió o
      que todavía no llegó), usar el cuadro cargado más cercano en vez de dejar el canvas
@@ -1016,10 +1022,36 @@ function initEscena(cfg){
     if(allReady) return;
     if(loadedCount>=Math.ceil(N*READY_FRAC)){ allReady=true; draw(cur); }
   }
+  /* ORDEN BA1: pedir() NO carga: encola. El tope de en-vuelo decide cuando sale cada uno. */
+  function pedir(i){
+    if(imgs[i] || pedido[i]) return;
+    pedido[i]=1; pend.push(i); bombear();
+  }
+  function bombear(){
+    while(enVuelo<CONC && pend.length) load(pend.shift());
+  }
   function load(i){
     if(imgs[i]) return;
-    var im=new Image(); im.decoding='async'; im.src=src(i); imgs[i]=im;
+    var myGen=gen;
+    var im=new Image(); im.decoding='async';
+    /* ORDEN BA1: los cuadros no le pelean el ancho de banda al hero.mp4 ni a la primera pantalla */
+    if('fetchPriority' in im) im.fetchPriority='low';
+    im.src=src(i); imgs[i]=im;
+    enVuelo++;
+    var soltado=false;
+    /* devuelve la ranura UNA sola vez. Si en el medio corrio liberar() (gen cambio), el contador
+       ya se puso en 0 con los cuadros: este pedido viejo no lo toca, o lo dejaria en negativo y
+       entrarian mas de CONC a la vez. */
+    var soltar=function(){
+      if(soltado) return; soltado=true;
+      if(gen!==myGen) return;
+      enVuelo--; bombear();
+    };
+    /* ORDEN BA1: con tope, un decode colgado se queda con la ranura para siempre. El watchdog la
+       devuelve a los 8 s; el cuadro puede llegar despues, mark() sigue siendo valido. */
+    setTimeout(soltar, WD_MS);
     var mark=function(){
+      soltar();
       if(imgs[i]!==im) return; ok[i]=true; loadedCount++;
       if(i===1) draw(cur); /* ORDEN AZ5: cuadro 1 visible en cuanto él esté listo, sin esperar a los demás */
       checkReady();
@@ -1034,16 +1066,11 @@ function initEscena(cfg){
   function startLoad(){
     if(started) return; started=true;
     gen++; var myGen=gen;
-    if(reduced){ load(N); want=N; cur=N; if(bar) bar.style.setProperty('--t',1); return; }
-    /* en tandas chicas (no las ~150 de una) para no saturar conexiones/decode de golpe */
-    var i=1;
-    function chunk(){
-      if(!started || gen!==myGen) return;
-      var end=Math.min(N,i+9);
-      for(; i<=end; i++) load(i);
-      if(i<=N) setTimeout(chunk,60);
-    }
-    chunk();
+    if(reduced){ pedir(N); want=N; cur=N; if(bar) bar.style.setProperty('--t',1); return; }
+    /* ORDEN BA1: se encolan TODOS en orden 1..N y el tope los va soltando. Reemplaza la tanda por
+       reloj, que en HTTP/2 no limitaba nada. Mismo total de peticiones y de bytes: cambia cuantos
+       viajan a la vez, y por eso el cuadro 1 llega primero en vez de llegar con el ultimo. */
+    for(var i=1; i<=N; i++) pedir(i);
     /* ORDEN AZ5: red/decode lentos no deben trabar la animación para siempre — a los 4s se
        anima con lo que haya, rellenando huecos con el cuadro cargado más cercano (ver draw()). */
     setTimeout(function(){
@@ -1098,6 +1125,7 @@ function initEscena(cfg){
     window.removeEventListener('scroll',tick);
     window.removeEventListener('resize',onResize);
     imgs=[]; ok=[]; loadedCount=0; allReady=false; started=false; running=false; want=1; cur=1;
+    pend=[]; pedido=[]; enVuelo=0;   /* ORDEN BA1: la cola y el contador se van con los cuadros */
     ctx.clearRect(0,0,W,H);
   }
   var ioTarget=track||stage;
@@ -1154,6 +1182,9 @@ function initMotor(cfg){
   /* want/cur viven en progreso de scroll 0..1 (t); draw()/LUT trabajan en posición de cuadro 1..N */
   var imgs=[], ok=[], loadedCount=0, allReady=false, want=0, cur=0, drawnPos=-1, running=false;
   var pedido=[], grueso=false, fino=false;
+  /* ORDEN BA1: mismo tope de en-vuelo que initEscena (ver el comentario de alla). OJO: aca el
+     dedupe NO va en el encolado — lo hace ya cola(), que marca pedido[k]=1 al armar la lista. */
+  var CONC=6, enVuelo=0, pend=[], WD_MS=8000;
   /* ORDEN AZ5 / initEscena, copiado textual: si el cuadro exacto no esta listo se usa el
      cuadro cargado mas CERCANO, en vez de congelar la escena. Es lo que permite que el
      despiece vaya de corrido de punta a punta con una fraccion de los cuadros. */
@@ -1200,10 +1231,20 @@ function initMotor(cfg){
     ctx.drawImage(imgs[i0],0,0,W,H); /* cubre el canvas entero: no hace falta clearRect antes */
     if(i1!==i0 && frac>0.004 && imgs[i1] && ok[i1]){ ctx.globalAlpha=frac; ctx.drawImage(imgs[i1],0,0,W,H); ctx.globalAlpha=1; }
   }
+  function bombear(){
+    while(enVuelo<CONC && pend.length) load(pend.shift());
+  }
   function load(i){
     if(imgs[i]) return;
-    var im=new Image(); im.decoding='async'; im.src=src(i); imgs[i]=im;
+    var im=new Image(); im.decoding='async';
+    if('fetchPriority' in im) im.fetchPriority='low';   /* ORDEN BA1: no le pelea al hero.mp4 */
+    im.src=src(i); imgs[i]=im;
+    enVuelo++;
+    var soltado=false;
+    var soltar=function(){ if(soltado) return; soltado=true; enVuelo--; bombear(); };
+    setTimeout(soltar, WD_MS);   /* ORDEN BA1: un decode colgado no se queda con la ranura */
     var mark=function(){
+      soltar();
       if(imgs[i]!==im) return; ok[i]=true; loadedCount++;
       if(loadedCount>=N) allReady=true;
       /* cada cuadro que llega REFINA lo que ya se ve: se repinta la posicion actual
@@ -1230,16 +1271,16 @@ function initMotor(cfg){
     if(pasos[pasos.length-1]===1 && !pedido[N]){ pedido[N]=1; q.push(N); }
     return q;
   }
-  function enTandas(q){
-    var c=0;
-    (function tanda(){
-      var fin=Math.min(q.length, c+8);
-      for(; c<fin; c++) load(q[c]);
-      if(c<q.length) setTimeout(tanda,60);
-    })();
+  /* ORDEN BA1: encolar en ORDEN y dejar que el tope de en-vuelo los suelte, en vez de la tanda
+     por reloj. El reparto grueso->fino NO cambia: cambia cuantos viajan a la vez.
+     La lista ya viene deduplicada por cola() (marca pedido[k]), asi que aca se empuja derecho:
+     filtrarla otra vez por pedido[] la dejaria vacia y el despiece no pediria NI UN cuadro. */
+  function encolar(q){
+    for(var c=0;c<q.length;c++) pend.push(q[c]);
+    bombear();
   }
-  function arrancarGrueso(){ if(grueso) return; grueso=true; enTandas(cola([16])); }
-  function arrancarFino(){ if(fino) return; fino=true; enTandas(cola([8,4,2,1])); }
+  function arrancarGrueso(){ if(grueso) return; grueso=true; encolar(cola([16])); }
+  function arrancarFino(){ if(fino) return; fino=true; encolar(cola([8,4,2,1])); }
   function anim(){
     var d=want-cur;
     if(Math.abs(d)<0.0015){ cur=want; draw(lutPos(cur),false); running=false; return; }
