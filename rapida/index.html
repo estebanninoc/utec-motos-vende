@@ -310,6 +310,15 @@
      CSS puro: mismo @keyframes de 9s con animation-delay -3s/-6s para que avancen solos y
      queden sincronizados con los thumbnails de abajo (mismo timing en dvThumb/dvFill). */
   .pv .slide{position:absolute;inset:0;opacity:0;animation:dvSlide 9s infinite}
+  /* El video unificado va DEBAJO de los rotulos: .pv video lo manda a z-index:1 y taparia
+     los .slide (z-index:auto). Apilado, no apariencia. */
+  .pv>video.hero-uno{z-index:0}
+  /* SINCRONIA: hasta hoy los rotulos y los thumbs arrancaban al parsear y el video al
+     acabar de cargar => offset fijo entre lo que se ve y el thumb resaltado. Esperan al
+     primer "playing". FAIL-OPEN: .dv-wait solo la pone el JS y solo el JS la quita. */
+  .device.dv-wait .pv .slide,
+  .device.dv-wait .tl .thumb,
+  .device.dv-wait .tl .thumb .fill{animation-play-state:paused}
   .pv .s1{animation-delay:0s}
   .pv .s2{animation-delay:-3s}
   .pv .s3{animation-delay:-6s}
@@ -545,18 +554,20 @@
         <div class="phone">
           <div class="screen">
             <div class="pv">
+              <!-- ORDEN de Esteban 2026-10-12: los 3 clips del carrusel se juntaron en
+                   UNO (vid/hero.mp4, 9.000 s = 3 segmentos de 3 s, el mismo ciclo que
+                   dvSlide/dvThumb/dvFill). 3 peticiones -> 1 y -38% de bytes. Va DEBAJO
+                   de los .slide, que siguen llevando el rotulo y el pie de cada segmento. -->
+              <video class="hero-uno" src="vid/hero.mp4" poster="vid/hero.webp" muted loop playsinline autoplay preload="auto"></video>
               <div class="slide s1">
-                <video src="vid/g1.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="auto"></video>
                 <span class="tag">Árbol de levas</span>
                 <div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
               </div>
               <div class="slide s2">
-                <video src="vid/g3.mp4" poster="vid/g3.webp" muted loop playsinline autoplay preload="auto"></video>
                 <span class="tag">Motor</span>
                 <div class="cap">Culata y cilindro<small>Tapa de válvulas, pistón y biela</small></div>
               </div>
               <div class="slide s3">
-                <video src="vid/g4.mp4" poster="vid/g4.webp" muted loop playsinline autoplay preload="auto"></video>
                 <span class="tag">Embrague</span>
                 <div class="cap">Discos y platos de presión<small>Campana, muelles y tornillos de ajuste</small></div>
               </div>
@@ -889,6 +900,31 @@
   vids.forEach(function(v){ io.observe(v); });
   /* ORDEN AZ9: el mockup del hero pasó de 1 video (#hero-v) a 3 (carrusel .device .slide video) */
   [].slice.call(document.querySelectorAll('.device video')).forEach(function(v){ v.play().catch(function(){}); });
+})();
+
+/* SINCRONIA DEL HERO (orden 2026-10-12). Los rotulos (.slide) y los thumbs (dvThumb/dvFill)
+   corren 9s en CSS y arrancaban al parsear; el video arranca cuando acaba de cargar, asi que
+   el thumb resaltado no era el del segmento en pantalla. Se pausan y se sueltan en el primer
+   'playing', reiniciando las animaciones para que el ciclo empiece en 0 junto con el video.
+   FAIL-OPEN, no negociable: si el video nunca arranca (autoplay negado, bloqueador, 404) el
+   reloj las suelta igual a los 1500 ms, y sin JS nunca llegan a pausarse. Medir no frena la vista. */
+(function(){
+  var d=document.querySelector('.device'); if(!d) return;
+  var v=d.querySelector('video.hero-uno'); if(!v) return;
+  var animados=[].slice.call(d.querySelectorAll('.pv .slide,.tl .thumb,.tl .thumb .fill'));
+  if(!animados.length) return;
+  d.classList.add('dv-wait');
+  var suelto=false;
+  function soltar(){
+    if(suelto) return; suelto=true;
+    animados.forEach(function(e){ e.style.animation='none'; });
+    void d.offsetWidth;                       /* reflujo: reinicia el ciclo en 0 */
+    animados.forEach(function(e){ e.style.animation=''; });
+    d.classList.remove('dv-wait');
+  }
+  v.addEventListener('playing', soltar, {once:true});
+  setTimeout(soltar, 1500);                   /* FAIL-OPEN */
+  if(!v.paused && v.currentTime>0) soltar();  /* ya estaba corriendo */
 })();
 
 /* tarjetas "pack": la lista de piezas aparece (fade-in) al final del clip y se oculta al reiniciar el loop */
