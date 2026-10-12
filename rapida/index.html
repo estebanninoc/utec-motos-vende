@@ -680,7 +680,10 @@ document.addEventListener('click',function(ev){
 </section>
 
 <!-- CTA FINAL (obra motos-estructura-venta): la pagina cerraba en la FAQ, sin cierre.
-     Clases existentes y 0 declaracion de estilo nueva. -->
+     Clases existentes y 0 declaracion de estilo nueva: .btn es inline-flex, asi que
+     lo centra el text-align del wrap -- no hace falta un flex con justify-content.
+     Tampoco se usa .cta-note: el @media de 820px la esconde y el refuerzo se
+     perderia justo en movil, que es el 99,9% del publico. -->
 <section>
   <div class="wrap" style="text-align:center">
     <div class="eyebrow">Último paso</div>
