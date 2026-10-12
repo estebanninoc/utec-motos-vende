@@ -423,19 +423,96 @@
     #contenido-completo{padding-top:24px}
   }
 </style>
-<!-- Meta Pixel (pendiente ID real) -->
+<!-- Meta Pixel — dataset UTEC - Motos (29341735888765973). Calcado del molde de
+     the-gamebox.com (CU_ATRIB/CU_TRACK/guarda de PIXEL/helper con try-catch).
+     REGLA DEL MOLDE: medir NUNCA frena la entrega — si fbq no existe o tira, el
+     boton sigue funcionando. Por eso cada disparo va envuelto.
+     ⛔ Purchase NO se dispara aca: lo manda el SERVIDOR con value/currency tal cual
+        de Stripe (event_id = purchase_<session_id>). El Purchase de navegador con
+        moneda clavada es el bug conocido del /ir/ de gamebox (Meta 29 vs caja 19). -->
 <script>
-!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','PIXEL_ID_PENDIENTE');
-fbq('track','PageView');
-document.addEventListener('click',function(ev){
-  var a = ev.target.closest ? ev.target.closest('[data-buy]') : null;
-  if(a){ fbq('track','Contact',{value:15000,currency:'COP'}); }
-},true);
+(function(){
+  /* ── 1. de donde llego el visitante (sobrevive la navegacion interna) ── */
+  var CLAVES = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term",
+                "fbclid","gclid","ttclid"];
+  var LS = "cu_atrib_v1";
+  function guardado(){
+    try{ return JSON.parse(sessionStorage.getItem(LS) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function capturar(){
+    var prev = guardado(), hay = false, out = {}, q;
+    try{ q = new URLSearchParams(location.search); }catch(e){ return prev; }
+    CLAVES.forEach(function(k){
+      var v = q.get(k);
+      if(v){ out[k] = v; hay = true; }
+    });
+    if(!hay) return prev;              /* sin UTMs nuevos: se respeta el primer toque */
+    out.ts = Date.now();
+    try{ sessionStorage.setItem(LS, JSON.stringify(out)); }catch(e){}
+    return out;
+  }
+  window.CU_ATRIB = capturar();
+
+  /* Etiqueta para el checkout de Stripe. Stripe solo acepta client_reference_id
+     (alfanumerico, guion y guion bajo, max 200): combo + campana + anuncio + fuente.
+     Se conserva el `?ad=`/`utm_content` de esta landing como la pieza ANUNCIO, y
+     MOTOS-META-SINTAG como default, para no perder la atribucion que ya existia. */
+  window.CU_TRACK = function(combo){
+    var a = window.CU_ATRIB || {};
+    function limpio(s){ return String(s || "").replace(/[^A-Za-z0-9_-]/g, "-"); }
+    var q = null;
+    try{ q = new URLSearchParams(location.search); }catch(e){}
+    var anuncio = (q && (q.get("ad") || q.get("utm_content"))) || a.utm_content || null;
+    if(!anuncio){ try{ anuncio = sessionStorage.getItem("motosRef"); }catch(e){} }
+    var deMeta = !!(a.fbclid || (q && q.get("fbclid")) ||
+                    /facebook\.com|instagram\.com/.test(document.referrer));
+    if(!anuncio && deMeta) anuncio = "MOTOS-META-SINTAG";
+    if(anuncio){ try{ sessionStorage.setItem("motosRef", limpio(anuncio)); }catch(e){} }
+    var src = limpio(a.utm_source || (deMeta ? "facebook" : "directo"));
+    var ref = [limpio(combo),
+               limpio(a.utm_campaign || "sin-campana"),
+               limpio(anuncio || "sin-anuncio"),
+               src].join("__").slice(0, 200);
+    return { src: src, ref: ref };
+  };
+
+  /* ── 2. Meta Pixel ── la guarda del molde: sin id NO inicializa nada ── */
+  var PIXEL = "29341735888765973";
+  if(!PIXEL) return;
+
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+  fbq('init', PIXEL);
+  fbq('track', 'PageView');
+
+  /* ── 3. helper: medir nunca frena la entrega ── */
+  window.CU_EV = function(nombre, extra){
+    if(typeof fbq !== "function") return;
+    var d = { content_type:"product", content_ids:['motos-pack-base'],
+              value:(parseInt(String(window.__precioCOP||'').replace(/[^0-9]/g,''),10)||15000), currency:"COP" };
+    if(extra) for(var k in extra) d[k] = extra[k];
+    try{ fbq("track", nombre, d); }catch(e){}
+  };
+
+  /* ViewContent: el visitante esta viendo el producto. El value es el precio REAL
+     de entrada. Si cambia el precio de venta, cambiar tambien aqui: Meta optimiza
+     con este numero. */
+  window.CU_EV('ViewContent', { content_name: 'MOTOS PRO - 962 manuales de taller + curso 2T/4T' });
+
+  /* Contact en el boton. El precio sale de window.__precio*, NUNCA de la
+     pantalla: el texto visible esta en moneda local y mandaria un value falso
+     (curado en CapCut el 28-sep). */
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('[data-buy]') : null;
+    if(!a) return;
+    try{ window.CU_EV('Contact'); }catch(x){}
+  }, true);
+})();
 </script>
 </head>
 <body>
