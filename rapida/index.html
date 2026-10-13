@@ -600,33 +600,18 @@
         <div class="phone">
           <div class="screen">
             <div class="pv">
-              <!-- ORDEN de Esteban 2026-10-12: los 3 clips del carrusel se juntaron en
-                   UNO (vid/hero.mp4, 9.000 s = 3 segmentos de 3 s, el mismo ciclo que
-                   dvSlide/dvThumb/dvFill). 3 peticiones -> 1 y -38% de bytes. Va DEBAJO
-                   de los .slide, que siguen llevando el rotulo y el pie de cada segmento.
-                   El poster es vid/g1.webp, que la pagina YA descarga como thumbnail t1: un
-                   hero.webp propio era el MISMO archivo byte a byte y costaba una peticion mas. -->
-              <video class="hero-uno" src="vid/hero.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="auto"></video>
-              <div class="slide s1">
-                <span class="tag">Árbol de levas</span>
-                <div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
-              </div>
-              <div class="slide s2">
-                <span class="tag">Motor</span>
-                <div class="cap">Culata y cilindro<small>Tapa de válvulas, pistón y biela</small></div>
-              </div>
-              <div class="slide s3">
-                <span class="tag">Embrague</span>
-                <div class="cap">Discos y platos de presión<small>Campana, muelles y tornillos de ajuste</small></div>
-              </div>
+              <!-- ORDEN de Esteban 2026-10-13: "solo deja este video en el hero de arriba
+                   [...] no dejemos ya los 3 que es muy mal optimizado que se ve". Queda UN
+                   clip: vid/g1.mp4 (arbol de levas, el archivo que mando, byte a byte).
+                   Salieron el ciclo de 3 segmentos (.slide s1/s2/s3) y la franja de thumbs
+                   (.tl): su rotulo y su pie quedan fijos como hijos directos de .pv, que ya
+                   son position:absolute -> CERO reglas CSS nuevas. hero.mp4 (248 KB) se borro.
+                   Hero: 247.865 B -> 124.957 B (-49,6%) y 2 peticiones .webp menos. -->
+              <video class="hero-uno" src="vid/g1.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="auto"></video>
+              <span class="tag">Árbol de levas</span>
+              <div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
               <span class="rec">Paso a paso</span>
             </div>
-            <div class="tl">
-              <div class="thumbs">
-                <div class="thumb t1" style="background-image:url(vid/g1.webp)"><i class="fill"></i></div>
-                <div class="thumb t2" style="background-image:url(vid/g3.webp)"><i class="fill"></i></div>
-                <div class="thumb t3" style="background-image:url(vid/g4.webp)"><i class="fill"></i></div>
-              </div>
             </div>
           </div>
         </div>
