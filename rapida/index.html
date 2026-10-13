@@ -69,9 +69,9 @@
                     queda --red #E60012 (blanco encima 4.80:1).
        radio 0      la placa no tiene una sola esquina redonda.
      Esto solo reescribe nav/. El resto de la pagina no se toca. ===== */
-  nav{--pr:#FA1319;position:sticky;top:0;z-index:50;background:#000;border-bottom:none;backdrop-filter:none}
-  nav::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:7px;pointer-events:none;
-    background:linear-gradient(to bottom,var(--pr) 0 3px,#000 3px 5px,var(--pr) 5px 7px)}
+  nav{--pr:#FA1319;position:sticky;top:0;z-index:50;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);border-bottom:none}
+  nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;pointer-events:none;
+    background:var(--pr)}
   nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:76px}
   nav .logo{gap:0}
   nav .logo img{display:block;height:auto}
@@ -85,7 +85,7 @@
      SE USA --red (#E60012 => blanco 4.80:1) y NO el rojo de la placa --pr (#FA1319 =>
      blanco 4.06:1, reprueba). El tamano sigue siendo el compacto del nav (media
      queries de abajo) para que placa + boton quepan de 320px a 390px. */
-  nav .btn{background:var(--red);color:#fff;border:none;border-radius:999px;
+  nav .btn{background:var(--red);color:#fff;border:none;border-radius:0;
     padding:12px 24px;font-family:var(--disp);font-weight:800;font-size:.95rem;letter-spacing:-.01em;
     text-transform:none;white-space:nowrap;box-shadow:0 10px 44px -10px rgba(230,0,18,.45);
     transition:transform .15s ease,box-shadow .15s ease}
@@ -602,7 +602,7 @@
 
 <nav>
   <div class="wrap">
-    <div class="logo"><img src="img/placa-nav-900.png" alt="MOTO DATA · Workshop Manuals" width="900" height="195"></div>
+    <div class="logo"><img src="img/placa-nav-glass-900.png" alt="MOTO DATA · Workshop Manuals" width="900" height="195"></div>
     <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">Comprar ahora</a>
   </div>
 </nav>
