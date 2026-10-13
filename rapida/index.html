@@ -185,6 +185,11 @@
      que ya están en la página (precio único, acceso inmediato, garantía 3 días del bloque
      de precio y FAQ) — nada nuevo, solo resumido arriba */
   .trust-row{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+  /* ORDEN 13-oct (Esteban): el bloque de confianza de la caja de compra va "igual
+     que el de melamina" => pastillas centradas bajo el boton, tambien en escritorio
+     (en movil ya centraba la media query). REVERSA: borrar esta sola linea. */
+  #comprar .trust-row{justify-content:center;gap:8px;margin-top:10px}
+  #comprar .trust-chip{font-size:.74rem;font-weight:600;gap:6px;padding:6px 11px}
   .trust-chip .e{display:inline-flex;line-height:1}
   .trust-chip{display:inline-flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:.82rem;color:#fff;background:#141416;border:1px solid var(--line);border-radius:999px;padding:8px 14px}
 
@@ -727,7 +732,7 @@
     <div class="hero-grid">
       <div class="pill">🏍️ <b>Celular + PC</b></div>
       <h1>Más de 1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
-      <p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, KTM, TVS y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
+      <p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
       <div class="cta-row">
         <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" id="btn-hero" data-buy="1">ACCEDE AHORA →</a>
       </div>
@@ -827,11 +832,11 @@
            que la caja de melamina. El canal de WhatsApp NO se pierde: sigue vivo en
            el acordeon "¿Sirve para mi moto?". REVERSA: devolver el texto largo. -->
       <div class="cta-note">Pago seguro · Acceso inmediato al confirmar</div>
-  <div class="pay-row">
-    <span class="pay-chip"><span>🔒</span>Pago cifrado con Stripe</span>
-    <span class="pay-chip"><svg width="30" height="16" viewBox="0 0 30 16" role="img" aria-label="Visa"><text x="0" y="13" font-family="Arial,Helvetica,sans-serif" font-style="italic" font-weight="900" font-size="15" letter-spacing="-.5" fill="currentColor">VISA</text></svg>· Mastercard</span>
-    <span class="pay-chip"><span>🛡️</span>Garantía 3 días</span>
-  </div>
+      <div class="trust-row">
+        <span class="trust-chip"><span class="e">🔒</span>Pago cifrado con Stripe</span>
+        <span class="trust-chip"><span class="e">💳</span>Visa · Mastercard</span>
+        <span class="trust-chip"><span class="e">🛡️</span>Garantía 3 días</span>
+      </div>
 
     </div>
   </div>
