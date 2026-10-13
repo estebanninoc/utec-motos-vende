@@ -724,7 +724,7 @@
 <nav>
   <div class="wrap">
     <div class="logo"><img src="img/placa-nav-sinmarco-852.png" alt="MOTO DATA · Workshop Manuals" width="852" height="156"></div>
-    <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">ACCEDE AHORA</a>
+    <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c?locale=es-419" class="btn" data-buy="1">ACCEDE AHORA</a>
   </div>
 </nav>
 
@@ -735,9 +735,9 @@
       <h1>Más de 1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
       <p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
       <div class="cta-row">
-        <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" id="btn-hero" data-buy="1">ACCEDE AHORA →</a>
+        <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c?locale=es-419" class="btn big" id="btn-hero" data-buy="1">ACCEDE AHORA →</a>
       </div>
-      <div class="cta-note">Pago único de US$12.99 (antes US$64.95) · Acceso inmediato · Es tuyo para siempre</div>
+      <div class="cta-note">Pago único de <span id="hero-precio">US$12.99</span> (antes <span id="hero-antes">US$64.95</span>) · Acceso inmediato · Es tuyo para siempre</div>
       <div class="trust-row">
         <span class="trust-chip"><span class="e">✅</span>Pago único</span>
         <span class="trust-chip"><span class="e">⚡</span>Acceso inmediato</span>
@@ -827,7 +827,7 @@
         <li><span class="ic">✓</span>Se abre sin internet</li>
         <li><span class="ic">✓</span>Acceso inmediato al pagar</li>
       </ul>
-      <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" id="btn-pago" data-buy="1">ACCEDE AHORA · US$12.99 →</a>
+      <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c?locale=es-419" class="btn big" id="btn-pago" data-buy="1">ACCEDE AHORA · US$12.99 →</a>
       <!-- ORDEN 13-oct (Esteban, foto de melamina): "pongamos mejor esto debajo del
            accede ahora para que les de confianza". Mismo renglon y mismos 3 sellos
            que la caja de melamina. El canal de WhatsApp NO se pierde: sigue vivo en
@@ -930,7 +930,7 @@
     </div>
 
     <div class="entrega">
-      <div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p>US$12.99, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
+      <div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p><span id="paso-precio">US$12.99</span>, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
       <div class="step"><div class="num">2</div><h3>Recibes el acceso al instante</h3><p>Te llega el enlace a tu carpeta privada apenas se confirma el pago.</p></div>
       <div class="step"><div class="num">3</div><h3>Buscas tu moto y la arreglas</h3><p>PDF por marca y modelo. Se abre en el celular, incluso sin internet.</p></div>
     </div>
@@ -962,7 +962,7 @@
 
 <div class="buybar" id="buybar">
   <div class="p"><span id="buybar-precio">US$12.99</span><small>pago único · acceso inmediato</small></div>
-  <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">ACCEDE AHORA →</a>
+  <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c?locale=es-419" class="btn" data-buy="1">ACCEDE AHORA →</a>
 </div>
 
 <script>
@@ -1005,18 +1005,79 @@
        parseFloat('12.99') === 12.99 ⇒ sirve directo. Por eso
        este bloque pasa a USD entero y el pixel deja de rasparle los no-digitos
        (raspar '12.99' daba 1299 — mil veces el precio, y en la moneda equivocada). */
-  var LINKS={base:'https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c'};
+  var LINKS={base:'https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c?locale=es-419'};
   var PR={base:'12.99'};
   var ANTES={base:'64.95'};
+  /* ══ MONEDA LOCAL EN PANTALLA ═══════════════════════════════════════════
+     Molde de curso.melamina.pro portado tal cual (orden de Esteban 13-oct-2026:
+     "que cada vez que alguien entre se convierta a su moneda local").
+     COMO SE DETECTA: por la zona horaria del navegador
+     (Intl.DateTimeFormat().resolvedOptions().timeZone). Sin geo-IP, sin llamada
+     de red, sin dependencia de terceros y sin un milisegundo de latencia.
+     DE DONDE SALE CADA NUMERO: de los currency_options del price que COBRA hoy
+     (price_1UPh53CkKktoiQEZYREwwEVF), leidos por GET el 2026-10-13. DIGITO A DIGITO.
+     Prohibido convertir por TRM y prohibido redondear: si la pantalla y Stripe
+     no dicen el mismo numero, el comprador ve un precio y paga otro.
+     Stripe entrega el monto en unidad MENOR; el exponente de cada moneda se
+     verifico reproduciendo la TAB ya publicada de melamina (CLP y PYG van sin
+     decimales, las otras 12 con 2). La division ya esta hecha aca.
+     FAIL-SAFE: zona fuera del mapa (Europa, USA, Ecuador, Panama, El Salvador)
+     => MON=null => se pinta USD igual que hoy, con los MISMOS literales.
+     Nunca pantalla en blanco, nunca undefined, nunca NaN: un precio roto es
+     peor que un precio en dolares. */
+  var TAB={"ARS":21900,"BOB":169,"BRL":69.99,"CLP":12900,"COP":44900,"CRC":6490,"DOP":789,"GTQ":104.99,"HNL":379,"MXN":239,"NIO":509,"PEN":46.99,"PYG":81900,"UYU":559};
+  var TZ2CC={"America/Bogota":"CO","America/Mexico_City":"MX","America/Cancun":"MX","America/Merida":"MX","America/Monterrey":"MX","America/Matamoros":"MX","America/Chihuahua":"MX","America/Ciudad_Juarez":"MX","America/Ojinaga":"MX","America/Hermosillo":"MX","America/Mazatlan":"MX","America/Bahia_Banderas":"MX","America/Tijuana":"MX","America/Lima":"PE","America/Santiago":"CL","America/Punta_Arenas":"CL","Pacific/Easter":"CL","America/Guatemala":"GT","America/Tegucigalpa":"HN","America/Managua":"NI","America/Costa_Rica":"CR","America/Santo_Domingo":"DO","America/Asuncion":"PY","America/Montevideo":"UY","America/La_Paz":"BO","America/Buenos_Aires":"AR","America/Cordoba":"AR","America/Mendoza":"AR","America/Rosario":"AR","America/Catamarca":"AR","America/Jujuy":"AR","America/Sao_Paulo":"BR","America/Bahia":"BR","America/Fortaleza":"BR","America/Recife":"BR","America/Belem":"BR","America/Manaus":"BR","America/Cuiaba":"BR","America/Campo_Grande":"BR","America/Porto_Velho":"BR","America/Boa_Vista":"BR","America/Rio_Branco":"BR","America/Maceio":"BR","America/Araguaina":"BR","America/Santarem":"BR","America/Eirunepe":"BR","America/Noronha":"BR","America/Sao_Luis":"BR","America/Guayaquil":"EC","America/El_Salvador":"SV","America/Panama":"PA","America/Argentina":"AR","America/Santa_Isabel":"MX"};
+  var MONEDAS={CO:"COP",MX:"MXN",PE:"PEN",CL:"CLP",AR:"ARS",BR:"BRL",GT:"GTQ",HN:"HNL",NI:"NIO",CR:"CRC",DO:"DOP",PY:"PYG",UY:"UYU",BO:"BOB",EC:null,SV:null,PA:null};
+  var SIM={COP:"$",MXN:"$",ARS:"$",CLP:"$",UYU:"$",DOP:"RD$",PEN:"S/",BRL:"R$",GTQ:"Q",HNL:"L",NIO:"C$",CRC:"\u20a1",PYG:"\u20b2",BOB:"Bs"};
+  var LOC={COP:"es-CO",MXN:"es-MX",ARS:"es-AR",CLP:"es-CL",PEN:"es-PE",UYU:"es-UY",BOB:"es-BO",PYG:"es-PY",GTQ:"es-GT",HNL:"es-HN",NIO:"es-NI",CRC:"es-CR",DOP:"es-DO",BRL:"pt-BR"};
+  var MON=null;
+  try{
+    var tz=(Intl.DateTimeFormat().resolvedOptions().timeZone)||"";
+    var cc=TZ2CC[tz]||TZ2CC[tz.replace("/Argentina/","/")]||TZ2CC[String(tz).split("/").slice(0,2).join("/")]||null;
+    var cur=cc?MONEDAS[cc]:null;
+    if(cur&&TAB[cur]) MON={cur:cur,t:TAB[cur]};
+  }catch(e){}
+  function fnum(n){
+    var dec=(n%1!==0)?2:0;
+    return SIM[MON.cur]+n.toLocaleString(LOC[MON.cur]||"es",{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  }
+  /* en USD se devuelve el LITERAL de siempre, no un numero reformateado: el
+     visitante de fuera de la tabla recibe exactamente los bytes de hoy. */
+  function precio(k){ return MON ? fnum(MON.t) : 'US$'+PR[k]; }
+  /* el grano de redondeo sale de la PROPIA TAB, como grano() en melamina: si el
+     precio de la moneda es entero, el tachado cae en el mismo orden de decenas
+     o centenas; si lleva decimales, termina en .99 como el precio.
+     DIFERENCIA DECLARADA CON MELAMINA: alla el ancla es una SUMA de precios de
+     lista y se redondea hacia ABAJO, porque hacia arriba la inflaria. Aca el
+     ancla no es una suma: es el inverso aritmetico del 80% YA PUBLICADO
+     (12.99 / 0,20 = 64.95). Redondear hacia abajo en las monedas con decimales
+     bajaria el badge publicado de 80% a 79%, asi que aca va hacia ARRIBA y el
+     ajuste maximo son 4 centavos. El porcentaje NO se escribe de memoria:
+     pintarAncla lo recalcula con los dos numeros que tiene delante, de modo que
+     si algun dia deja de dar 80 se publica el REAL. */
+  function grano(v){
+    if(v%1!==0) return 0.01;
+    var g=1000;
+    while(g>1){ if(v%g===0) return g; g/=10; }
+    return 1;
+  }
+  function anclaLocal(v){
+    var g=grano(v), x=v/0.20;
+    if(g===0.01) return (x%1===0) ? x : Math.ceil(x)-0.01;
+    return Math.ceil(x/g)*g;
+  }
   function pintarAncla(k){
     var c=document.querySelector('.ancla'), lis=document.getElementById('anc-lista'), off=document.getElementById('anc-off');
     if(!c) return;
     var antes=ANTES[k];
-    var s=antes?parseFloat(antes):0, h=parseFloat(PR[k]);
+    if(!antes){ c.style.display='none'; return; }
+    /* en moneda local los dos numeros salen de la TAB (el de hoy) y de su propio
+       80% (el tachado); en USD salen de los literales de siempre. */
+    var s=MON?anclaLocal(MON.t):parseFloat(antes), h=MON?MON.t:parseFloat(PR[k]);
     if(!(s>h)){ c.style.display='none'; return; }   /* antes callarse que mentir */
     var pct=Math.floor(100*(1-h/s));
     c.style.display='';
-    lis.textContent='US$'+antes;
+    lis.textContent=MON?fnum(s):'US$'+antes;
     off.textContent=pct+'% OFF';
   }
   var REF=null;
@@ -1035,7 +1096,7 @@
     return REF ? u+(u.indexOf('?')<0?'?':'&')+'client_reference_id='+REF : u; }
   var btn=document.getElementById('btn-pago'), big=document.getElementById('precio-grande');
   function up(){
-    var k='base', t='US$'+PR[k]; window.__precioUSD=PR[k];
+    var k='base', t=precio(k); window.__precioUSD=PR[k];   /* el pixel sigue en USD */
     /* el href ya viene ESCRITO en el HTML; el JS lo confirma, no lo inventa:
        si este bloque muere, el boton sigue llevando al checkout igual. */
     /* los 5 botones de compra, no solo el de la caja: todos van al mismo checkout
@@ -1048,6 +1109,12 @@
     if(big) big.textContent=t;
     var bb=document.getElementById('buybar-precio'); if(bb) bb.textContent=t;
     var fp=document.getElementById('faq-precio'); if(fp) fp.textContent=t;
+    if(btn) btn.textContent='ACCEDE AHORA · '+t+' \u2192';
+    /* los puntos que el HTML traia clavados en dolares: si este bloque muere,
+       el HTML sigue mostrando US$ y el boton sigue llevando al checkout. */
+    var hp=document.getElementById('hero-precio'); if(hp) hp.textContent=t;
+    var ha=document.getElementById('hero-antes'); if(ha) ha.textContent=MON?fnum(anclaLocal(MON.t)):'US$'+ANTES['base'];
+    var pp=document.getElementById('paso-precio'); if(pp) pp.textContent=t;
     pintarAncla(k);
   }
   up();
