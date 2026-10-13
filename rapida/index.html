@@ -83,20 +83,35 @@
   /* hover: relleno --red (#E60012), NO el rojo de la placa, porque blanco sobre el de la
      placa da 4.06:1 y sobre --red da 4.80:1 */
   nav .btn:hover{background:var(--red);border-color:var(--red);color:#fff;transform:none;box-shadow:none}
-  /* B · CABECERA DE MANUAL: el nav ES la placa, no la contiene. El marco y el filete los
-     pone la barra a todo lo ancho; el activo entra sin marco (solo las letras), y el piso
-     chico de la placa (su renglon tracked) renace como banda a lo ancho — es la gramatica
-     de la placa desenrollada, no un invento. */
-  nav .logo img{width:min(268px,46vw)}
-  nav .banda{border-top:2px solid var(--pr);background:#000}
+  /* ===== ORDEN de Esteban 2026-10-13: "me gusta el formato de diseno pero dejemos el
+     logo original, solo integralo bien". Vuelve la PLACA COMPLETA (marco rojo doble +
+     MOTO DATA + WORKSHOP MANUALS) tal cual la mando, no las letras sueltas.
+     POR QUE AHORA SI SE INTEGRA (y antes parecia calcomania):
+       - el nav ya es #000 solido, el MISMO negro del interior de la placa => el marco
+         rojo se apoya sobre la barra, no sobre un parche propio que no scrollea igual.
+       - el PNG se recorto AL FILETE ROJO EXACTO (bbox medido sobre el original:
+         x40,y84 -> x1241,y343) y el ruido JPEG del interior se clavo a #000: sin halo.
+       - AIRE: la barra sube a 88px para que la placa (59px) respire ~14px arriba y abajo.
+       - el divisor de la banda baja de 2px ROJO a 1px gris: con la placa puesta habia
+         CUATRO lineas rojas en 110px. Manda un solo marco rojo (el de la placa) y el
+         filete doble de abajo cierra la barra. La banda sigue siendo el piso chico de
+         la placa desenrollado a lo ancho — el formato que ya estaba aprobado.
+       - MOVIL (<=560px): el boton sale del nav y la placa se centra a 70vw. A 360px no
+         caben los dos (placa 4,6:1 + boton = 371px sobre 360 utiles) y el CTA ya lo
+         cubre la .buybar fija de abajo, que en <=820px esta siempre puesta.
+     ===== */
+  nav .logo img{width:272px}
+  nav .wrap{height:88px}
+  nav .banda{border-top:1px solid #26262b;background:#000}
   nav .banda .wrap{height:26px;display:flex;align-items:center;justify-content:center}
   nav .banda span{font-family:var(--disp);font-weight:700;font-size:.58rem;letter-spacing:.34em;
     text-transform:uppercase;color:#fff;white-space:nowrap;line-height:1}
   nav .banda .corta{display:none}
-  @media(max-width:820px){nav .wrap{height:62px}nav .btn{padding:10px 14px;font-size:.66rem;letter-spacing:.1em}}
-  @media(max-width:560px){nav .banda .larga{display:none}nav .banda .corta{display:inline}}
-  @media(max-width:400px){nav .logo img{width:min(268px,42vw)}nav .btn{padding:10px 11px;font-size:.62rem;letter-spacing:.08em}
-    nav .banda span{font-size:.52rem;letter-spacing:.24em}}
+  @media(max-width:820px){nav .wrap{height:78px}nav .logo img{width:min(248px,44vw)}
+    nav .btn{padding:10px 14px;font-size:.66rem;letter-spacing:.1em}}
+  @media(max-width:560px){nav .banda .larga{display:none}nav .banda .corta{display:inline}
+    nav .btn{display:none}nav .wrap{justify-content:center}nav .logo img{width:min(258px,70vw)}}
+  @media(max-width:400px){nav .banda span{font-size:.52rem;letter-spacing:.24em}}
 
   /* HERO */
   /* ORDEN AZ9 (Esteban): glow rojo suave detrás del celular, además del glow blanco
@@ -571,7 +586,7 @@
 
 <nav>
   <div class="wrap">
-    <div class="logo"><img src="img/wordmark-letras-112.png" alt="MOTO DATA · Workshop Manuals" width="1104" height="112"></div>
+    <div class="logo"><img src="img/placa-nav-900.png" alt="MOTO DATA · Workshop Manuals" width="900" height="195"></div>
     <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">Quiero el pack →</a>
   </div>
   <div class="banda"><div class="wrap">
@@ -836,9 +851,21 @@
 </div>
 
 <script>
-/* barra fija: se esconde cuando ya estás en la sección de precio */
+/* barra fija: se esconde cuando ya estás en la sección de precio.
+   ORDEN de Esteban 2026-10-13 (placa grande arriba): en <=560px el boton sale del nav
+   porque no caben los dos en 360px. Para NO dejar al movil sin CTA, el centinela deja de
+   mirar el <header> entero (que en celular mide ~3.900px: el buybar no aparecia hasta
+   y=4.200, o sea medio scroll sin un solo boton) y pasa a mirar el BOTON del hero:
+   apenas ese boton sale de pantalla, entra la barra fija. Fallback al header si no esta.
+   En escritorio no cambia nada: .buybar solo existe en <=820px. */
 (function(){
-  var bar=document.getElementById('buybar'),c=document.getElementById('comprar'),h=document.querySelector('header');
+  /* y el centinela de 'ya estas en el precio' deja de mirar la SECCION #comprar entera
+     (1.206px de alto en celular: la barra se apagaba en 3 tramos donde el boton de pago
+     ni se veia) y mira el BOTON #btn-pago. Mismo efecto donde importa —no tapa el boton
+     real— y cero tramos sin CTA. */
+  var bar=document.getElementById('buybar');
+  var c=document.getElementById('btn-pago')||document.getElementById('comprar');
+  var h=document.getElementById('btn-hero')||document.querySelector('header');
   var enPrecio=false,enHero=true;
   function pinta(){ bar.style.display = (enPrecio||enHero) ? 'none' : ''; }
   pinta();
