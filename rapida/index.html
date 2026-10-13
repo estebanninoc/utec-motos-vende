@@ -59,9 +59,44 @@
   .logo .sub{font-weight:700;font-size:.72rem;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-left:2px;align-self:flex-end;padding-bottom:2px}
 
   /* NAV */
-  nav{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.78);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-  nav .btn{padding:10px 22px;font-size:.9rem}
+  /* ===== OBRA motos-nav-placa — la barra de arriba cumple el formato de la placa.
+     Medido sobre la placa (uploads/photo_1791852152.jpg), no opinado:
+       fondo        #000 solido (no vidrio: la placa no cambia de brillo al scrollear)
+       filete doble 4px rojo / 4px negro / 6px rojo  -> aqui 2/2/3, mismo orden
+       divisor      6px rojo entre el piso grande y el piso chico
+       rojo placa   #FA1319 (moda de las letras DATA). Blanco encima da 4.06:1 => NO
+                    pasa AA: va a FILETES, nunca de relleno bajo texto. Para relleno
+                    queda --red #E60012 (blanco encima 4.80:1).
+       radio 0      la placa no tiene una sola esquina redonda.
+     Esto solo reescribe nav/. El resto de la pagina no se toca. ===== */
+  nav{--pr:#FA1319;position:sticky;top:0;z-index:50;background:#000;border-bottom:none;backdrop-filter:none}
+  nav::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:7px;pointer-events:none;
+    background:linear-gradient(to bottom,var(--pr) 0 3px,#000 3px 5px,var(--pr) 5px 7px)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:76px}
+  nav .logo{gap:0}
+  nav .logo img{display:block;height:auto}
+  /* el boton deja de ser pastilla blanca y pasa a ser una mini-placa:
+     negro, filete rojo, mayuscula condensada con tracking. Blanco sobre negro = 21:1. */
+  nav .btn{background:#000;color:#fff;border:2px solid var(--pr);border-radius:2px;box-shadow:none;
+    padding:12px 20px;font-family:var(--disp);font-weight:800;font-size:.72rem;letter-spacing:.13em;
+    text-transform:uppercase;white-space:nowrap;transition:background .15s ease,border-color .15s ease}
+  /* hover: relleno --red (#E60012), NO el rojo de la placa, porque blanco sobre el de la
+     placa da 4.06:1 y sobre --red da 4.80:1 */
+  nav .btn:hover{background:var(--red);border-color:var(--red);color:#fff;transform:none;box-shadow:none}
+  /* B · CABECERA DE MANUAL: el nav ES la placa, no la contiene. El marco y el filete los
+     pone la barra a todo lo ancho; el activo entra sin marco (solo las letras), y el piso
+     chico de la placa (su renglon tracked) renace como banda a lo ancho — es la gramatica
+     de la placa desenrollada, no un invento. */
+  nav .logo img{width:min(268px,46vw)}
+  nav .banda{border-top:2px solid var(--pr);background:#000}
+  nav .banda .wrap{height:26px;display:flex;align-items:center;justify-content:center}
+  nav .banda span{font-family:var(--disp);font-weight:700;font-size:.58rem;letter-spacing:.34em;
+    text-transform:uppercase;color:#fff;white-space:nowrap;line-height:1}
+  nav .banda .corta{display:none}
+  @media(max-width:820px){nav .wrap{height:62px}nav .btn{padding:10px 14px;font-size:.66rem;letter-spacing:.1em}}
+  @media(max-width:560px){nav .banda .larga{display:none}nav .banda .corta{display:inline}}
+  @media(max-width:400px){nav .logo img{width:min(268px,42vw)}nav .btn{padding:10px 11px;font-size:.62rem;letter-spacing:.08em}
+    nav .banda span{font-size:.52rem;letter-spacing:.24em}}
 
   /* HERO */
   /* ORDEN AZ9 (Esteban): glow rojo suave detrás del celular, además del glow blanco
@@ -536,9 +571,12 @@
 
 <nav>
   <div class="wrap">
-    <div class="logo"><img src="img/wordmark-840.png" alt="MOTO DATA · Workshop Manuals" width="840" height="179" style="display:block;width:min(206px,40vw);height:auto"></div>
+    <div class="logo"><img src="img/wordmark-letras-112.png" alt="MOTO DATA · Workshop Manuals" width="1104" height="112"></div>
     <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">Quiero el pack →</a>
   </div>
+  <div class="banda"><div class="wrap">
+    <span class="larga">Manuales de taller · Despiece · Diagramas eléctricos</span><span class="corta">Despiece · Diagramas eléctricos</span>
+  </div></div>
 </nav>
 
 <header>
