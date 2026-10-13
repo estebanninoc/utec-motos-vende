@@ -75,11 +75,11 @@
   nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:76px}
   nav .logo{gap:10px}
   nav .logo img{display:block;height:auto}
-  /* P1 2026-10-13: emblema circular a la IZQUIERDA de la placa. Tamanos SOLO del nav;
-     especificidad (0,2,1) > la de "nav .logo img" (0,1,2), asi que el emblema no hereda
-     los 280px/196px de la placa. Reversa: borrar este bloque y volver gap:0. */
-  nav .logo .mark{width:46px;height:46px}
-  nav .logo .mark img{width:33px;height:33px}
+  /* P2 2026-10-13 ("quita el icono de al lado del logo"): el emblema circular SALE
+     del nav. Se van con el las 3 reglas de tamano que eran SOLO del nav. El emblema
+     se queda donde Esteban lo quiso: en el pie (footer .logo img, logo-mark-512.png)
+     y como favicon/apple-touch (logo-mark-96.png). Las reglas genericas ".logo .mark"
+     NO se tocan: no son del nav. Reversa: devolver el <span class="mark"> y este bloque. */
   /* el boton deja de ser pastilla blanca y pasa a ser una mini-placa:
      negro, filete rojo, mayuscula condensada con tracking. Blanco sobre negro = 21:1. */
   /* ORDEN de Esteban 2026-10-13 (3a vuelta): "pon el boton rojo con letras blancas
@@ -90,7 +90,7 @@
      SE USA --red (#E60012 => blanco 4.80:1) y NO el rojo de la placa --pr (#FA1319 =>
      blanco 4.06:1, reprueba). El tamano sigue siendo el compacto del nav (media
      queries de abajo) para que placa + boton quepan de 320px a 390px. */
-  nav .btn{background:var(--red);color:#fff;border:none;border-radius:0;
+  nav .btn{background:var(--red);color:#fff;border:none;border-radius:999px;
     padding:12px 24px;font-family:var(--disp);font-weight:800;font-size:.95rem;letter-spacing:-.01em;
     text-transform:none;white-space:nowrap;box-shadow:0 10px 44px -10px rgba(230,0,18,.45);
     transition:transform .15s ease,box-shadow .15s ease}
@@ -132,10 +132,10 @@
     nav .btn{padding:10px 18px;font-size:.86rem;letter-spacing:-.01em}}
   @media(max-width:560px){nav .wrap{height:68px;gap:10px;justify-content:space-between}
     nav .logo img{width:min(196px,42vw)}
-    nav .logo{gap:8px}nav .logo .mark{width:34px;height:34px}nav .logo .mark img{width:24px;height:24px}
+    nav .logo{gap:8px}
     nav .btn{padding:9px 15px;font-size:.78rem;letter-spacing:-.01em}}
   @media(max-width:380px){nav .logo img{width:min(196px,38vw)}
-    nav .logo{gap:6px}nav .logo .mark{width:30px;height:30px}nav .logo .mark img{width:21px;height:21px}
+    nav .logo{gap:6px}
     nav .btn{padding:8px 13px;font-size:.72rem;letter-spacing:-.01em}}
 
   /* HERO */
@@ -280,6 +280,31 @@
   .acc-body ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
   .acc-body li{padding-left:18px;position:relative}
   .acc-body li::before{content:"›";position:absolute;left:0;color:#fff}
+  /* ===== P5 2026-10-13 ("el 1 2 3 estan desordenadas las letras, cuadralas"):
+     el numero sale del texto y se va a una FICHA CUADRADA de ancho FIJO (34px, igual
+     en los 3), y el summary pasa de flex a grid de 4 columnas
+     [ficha | titulo | meta | +]. Asi los 3 titulos arrancan en la MISMA X.
+     MEDIDO ANTES (chromium, 360px): el titulo 1 se partia en 5 lineas y las filas
+     median 168 / 91 / 77px porque la .meta es flex-shrink:0 y le comia el ancho.
+     En <=700px la meta BAJA a su propia fila debajo del titulo.
+     Alcance: SOLO #contenido-completo. El acordeon del FAQ no se toca (misma clase
+     .acc, por eso cada regla va prefijada). Radio 10px: valor que la pagina ya usa.
+     Reversa: borrar este bloque y devolver los 3 <summary> de dos spans. ===== */
+  #contenido-completo .acc summary{display:grid;grid-template-columns:34px minmax(0,1fr) auto auto;
+    align-items:center;column-gap:14px;row-gap:2px}
+  #contenido-completo .acc summary .nb{grid-area:1/1;width:34px;height:34px;display:flex;
+    align-items:center;justify-content:center;background:#17171a;border:1px solid var(--line);
+    border-radius:10px;font-family:var(--disp);font-weight:900;font-size:1rem;color:#fff}
+  #contenido-completo .acc summary .tt{grid-area:1/2;min-width:0}
+  #contenido-completo .acc summary .tt .em{display:inline-block;width:22px}
+  #contenido-completo .acc summary .meta{grid-area:1/3}
+  #contenido-completo .acc summary::after{grid-area:1/4}
+  @media(max-width:700px){
+    #contenido-completo .acc summary{grid-template-columns:34px minmax(0,1fr) auto}
+    #contenido-completo .acc summary .nb{grid-area:1/1/span 2/2;align-self:center}
+    #contenido-completo .acc summary .meta{grid-area:2/2;text-align:left;flex-shrink:1}
+    #contenido-completo .acc summary::after{grid-area:1/3/span 2/4;align-self:center}
+  }
 
   /* BANDA CINEMATOGRÁFICA */
   .band{position:relative;min-height:360px;display:flex;align-items:center;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -321,9 +346,14 @@
   .price-now{font-family:var(--disp);font-size:3.6rem;font-weight:900;line-height:1;margin:6px 0 4px;letter-spacing:-.04em}
   .price-per{display:inline-block;background:#17171a;border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:.85rem;font-weight:700;color:var(--mut);margin-top:12px}
   .price-per b{color:#fff}
-  .price-list{list-style:none;text-align:left;margin:26px 0;display:grid;gap:11px}
+  .price-list{list-style:none;text-align:left;margin:26px 0;display:grid;gap:9px}
   .price-list li{padding-left:30px;position:relative;color:var(--tx)}
-  .price-list li::before{content:"✓";position:absolute;left:0;color:#fff;font-weight:900}
+  /* P4 2026-10-13 ("ponle que se vea que trae varias cosas"): la lista pasa de 4 items
+     a 12 cortos, y el UNICO ✓ que habia se cambia por el emoji DEL item. El emoji va
+     en la MISMA ranura del marcador (position:absolute, ancho fijo 22px) para que los
+     12 textos arranquen en la misma X y cada renglon quepa en UNA linea a 320px.
+     El tamano de letra NO se toca (el target lee mal). Reversa: este bloque + el <ul>. */
+  .price-list li .ic{position:absolute;left:0;top:0;width:22px;text-align:center;font-style:normal;line-height:inherit}
   .price-card .btn{width:100%}
   /* P5 2026-10-13: en celular la caja tenia 34px de padding a cada lado y dejaba 250px
      utiles: hasta un bullet de 3 palabras se partia. Se afloja SOLO el padding lateral
@@ -625,7 +655,7 @@
 
 <nav>
   <div class="wrap">
-    <div class="logo"><span class="mark"><img src="img/logo-mark-96.png" alt="" width="96" height="96" decoding="async"></span><img src="img/placa-nav-sinmarco-852.png" alt="MOTO DATA · Workshop Manuals" width="852" height="156"></div>
+    <div class="logo"><img src="img/placa-nav-sinmarco-852.png" alt="MOTO DATA · Workshop Manuals" width="852" height="156"></div>
     <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn" data-buy="1">Quiero el pack</a>
   </div>
 </nav>
@@ -633,7 +663,7 @@
 <header>
   <div class="wrap">
     <div class="hero-grid">
-      <div class="pill">🏍️ Tu marca y tu modelo · <b>Celular + PC</b></div>
+      <div class="pill">🏍️ <b>Celular + PC</b></div>
       <h1>Más de 1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
       <p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, KTM, TVS y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
       <div class="cta-row">
@@ -680,7 +710,7 @@
     <div class="badges">
       <div class="badge"><div class="n">+1.200</div><div class="l">manuales de taller</div></div>
       <div class="badge"><div class="n">+90</div><div class="l">marcas de motos</div></div>
-      <div class="badge"><div class="n">49<span style="font-size:.9rem"> GB</span></div><div class="l">de contenido</div></div>
+      <div class="badge"><div class="n">+49<span style="font-size:.9rem"> GB</span></div><div class="l">de contenido</div></div>
       <div class="badge"><div class="n">2T·4T</div><div class="l">motores cubiertos</div></div>
     </div>
   </div>
@@ -691,7 +721,7 @@
   <div class="wrap">
     <div class="eyebrow">Así se ve por dentro</div>
     <h2 class="title">Tu moto, pieza por pieza</h2>
-    <p class="lead">Baja y mira cómo se abre. <b>Así de claro</b> te lo muestra el manual de tu moto: cada pieza, el orden de armado y el torque de cada tornillo.</p>
+    <p class="lead">Baja y mira cómo se abre: cada pieza, el orden de armado y el torque de cada tornillo.</p>
   </div>
   <div class="dp-stage" id="dp-stage">
     <canvas id="dp-canvas" width="1280" height="732" role="img" aria-label="Una moto armada que se abre en despiece mientras bajas: motor, tanque, horquilla, chasis, cadena, escape, ruedas y embrague por separado."></canvas>
@@ -722,10 +752,18 @@
            en la pagina — Cuatrimoto/Torito/Motocarro en "Contenido completo" y la garantia
            en su propia seccion y en el chip del hero. REVERSA: este <ul> por el de 7. -->
       <ul class="price-list">
-        <li><b>Más de 1.200 manuales</b> de <b>más de 90 marcas</b></li>
-        <li><b>Diagramas eléctricos</b> y despiece</li>
-        <li><b>Curso de Mecánica 2T y 4T</b></li>
-        <li>Acceso inmediato, apenas pagas</li>
+        <li><span class="ic">📘</span><b>+1.200 manuales</b> de taller</li>
+        <li><span class="ic">🏍️</span>De <b>más de 90 marcas</b></li>
+        <li><span class="ic">🔎</span><b>+880 modelos</b> distintos</li>
+        <li><span class="ic">⚡</span><b>Diagramas eléctricos</b></li>
+        <li><span class="ic">🔧</span>Despiece, armado y torque</li>
+        <li><span class="ic">🎓</span>Curso de mecánica <b>2T·4T</b></li>
+        <li><span class="ic">🛺</span>Torito Bajaj y motocarro</li>
+        <li><span class="ic">🏁</span>Cuatrimotos y mototaxi</li>
+        <li><span class="ic">🎨</span>Pintura y plástico de motos</li>
+        <li><span class="ic">💾</span><b>+49 GB</b> para descargar</li>
+        <li><span class="ic">📱</span>Se abre sin internet</li>
+        <li><span class="ic">🚀</span>Acceso inmediato al pagar</li>
       </ul>
       <a href="https://buy.stripe.com/dRmdR89qC6jwam78TS0RG0c" class="btn big" id="btn-pago" data-buy="1">Quiero el pack →</a>
       <div class="cta-note">Pago seguro con tarjeta · Acceso inmediato · ¿Dudas con tu moto? <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" data-soporte="1" style="color:inherit;text-decoration:underline">Escríbenos por WhatsApp</a></div>
@@ -807,15 +845,15 @@
     <p class="lead">Lo que ves es lo que hay.</p>
     <div class="acc">
       <details open>
-        <summary><span>1 · Manuales de taller por marca</span><span class="meta">más de 1.200 manuales · más de 90 marcas</span></summary>
+        <summary><span class="nb">1</span><span class="tt"><span class="em">📘</span>Manuales de taller por marca</span><span class="meta">más de 1.200 manuales · más de 90 marcas</span></summary>
         <div class="acc-body"><p>Yamaha (381), Honda (159), Bajaj (130), Kawasaki (106), Suzuki (68), AKT (38), TVS (37), KTM (36), Kymco (26), SYM (23), Hero (23), Victory (20), Italika (19), BMW (15), CFMoto (14), Benelli (13), Harley-Davidson (13), Aprilia (12), Ducati (9) y muchas marcas más. El número entre paréntesis es cuántos manuales hay de esa marca, contados en la carpeta. Despiece, montaje y diagramas eléctricos.</p></div>
       </details>
       <details>
-        <summary><span>2 · Curso de Mecánica 2T y 4T</span><span class="meta">incluido</span></summary>
+        <summary><span class="nb">2</span><span class="tt"><span class="em">🎓</span>Curso de Mecánica 2T y 4T</span><span class="meta">incluido</span></summary>
         <div class="acc-body"><p>Cómo funciona un motor de <b>2 tiempos</b> y uno de <b>4 tiempos</b>, en qué se parecen, en qué no, y qué se hace distinto al desarmarlos. Explicado desde cero.</p></div>
       </details>
       <details>
-        <summary><span>3 · Bonos</span><span class="meta">agrégalos a tu pedido</span></summary>
+        <summary><span class="nb">3</span><span class="tt"><span class="em">🎁</span>Bonos</span><span class="meta">agrégalos a tu pedido</span></summary>
         <div class="acc-body">
           <ul>
             <li>Checklist de mantenimiento preventivo (gratis)</li><li>Curso Polarizado de Autos</li>
@@ -827,9 +865,9 @@
     </div>
 
     <div class="entrega">
-      <div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p>US$12.99, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
-      <div class="step"><div class="num">2</div><h3>Recibes el acceso al instante</h3><p>Te llega el enlace a tu carpeta privada apenas se confirma el pago.</p></div>
-      <div class="step"><div class="num">3</div><h3>Buscas tu moto y la arreglas</h3><p>PDF por marca y modelo. Se abre en el celular, incluso sin internet.</p></div>
+      <div class="step"><div class="num">1</div><h3>💳 Pagas una sola vez</h3><p>US$12.99, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
+      <div class="step"><div class="num">2</div><h3>⚡ Recibes el acceso al instante</h3><p>Te llega el enlace a tu carpeta privada apenas se confirma el pago.</p></div>
+      <div class="step"><div class="num">3</div><h3>🔧 Buscas tu moto y la arreglas</h3><p>PDF por marca y modelo. Se abre en el celular, incluso sin internet.</p></div>
     </div>
   </div>
 </section>
