@@ -5,104 +5,13 @@
 <!-- vel1-motos -->
 <!-- vel2-motos -->
 <!-- vel3-motos -->
-<!-- VEL1: píxel primero (antes de fuentes, video e imágenes) + conexiones a Meta abiertas desde ya. Mismo PIXEL y mismos eventos. -->
 <link rel="preconnect" href="https://connect.facebook.net">
 <link rel="preconnect" href="https://www.facebook.com">
-<!-- VEL3: el checkout (Stripe) resuelve DNS desde ya -->
 <link rel="dns-prefetch" href="https://buy.stripe.com">
-<script>
-(function(){
-  /* ── 1. de donde llego el visitante (sobrevive la navegacion interna) ── */
-  var CLAVES = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term",
-                "fbclid","gclid","ttclid"];
-  var LS = "cu_atrib_v1";
-  function guardado(){
-    try{ return JSON.parse(sessionStorage.getItem(LS) || "{}") || {}; }
-    catch(e){ return {}; }
-  }
-  function capturar(){
-    var prev = guardado(), hay = false, out = {}, q;
-    try{ q = new URLSearchParams(location.search); }catch(e){ return prev; }
-    CLAVES.forEach(function(k){
-      var v = q.get(k);
-      if(v){ out[k] = v; hay = true; }
-    });
-    if(!hay) return prev;              /* sin UTMs nuevos: se respeta el primer toque */
-    out.ts = Date.now();
-    try{ sessionStorage.setItem(LS, JSON.stringify(out)); }catch(e){}
-    return out;
-  }
-  window.CU_ATRIB = capturar();
-
-  /* Etiqueta para el checkout de Stripe. Stripe solo acepta client_reference_id
-     (alfanumerico, guion y guion bajo, max 200): combo + campana + anuncio + fuente.
-     Se conserva el `?ad=`/`utm_content` de esta landing como la pieza ANUNCIO, y
-     MOTOS-META-SINTAG como default, para no perder la atribucion que ya existia. */
-  window.CU_TRACK = function(combo){
-    var a = window.CU_ATRIB || {};
-    function limpio(s){ return String(s || "").replace(/[^A-Za-z0-9_-]/g, "-"); }
-    var q = null;
-    try{ q = new URLSearchParams(location.search); }catch(e){}
-    var anuncio = (q && (q.get("ad") || q.get("utm_content"))) || a.utm_content || null;
-    if(!anuncio){ try{ anuncio = sessionStorage.getItem("motosRef"); }catch(e){} }
-    var deMeta = !!(a.fbclid || (q && q.get("fbclid")) ||
-                    /facebook\.com|instagram\.com/.test(document.referrer));
-    if(!anuncio && deMeta) anuncio = "MOTOS-META-SINTAG";
-    if(anuncio){ try{ sessionStorage.setItem("motosRef", limpio(anuncio)); }catch(e){} }
-    var src = limpio(a.utm_source || (deMeta ? "facebook" : "directo"));
-    var ref = [limpio(combo),
-               limpio(a.utm_campaign || "sin-campana"),
-               limpio(anuncio || "sin-anuncio"),
-               src].join("__").slice(0, 200);
-    return { src: src, ref: ref };
-  };
-
-  /* ── 2. Meta Pixel ── la guarda del molde: sin id NO inicializa nada ── */
-  var PIXEL = "29341735888765973";
-  if(!PIXEL) return;
-
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.fetchPriority='high';
-  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-
-  fbq('init', PIXEL);
-  fbq('track', 'PageView');
-
-  /* ── 3. helper: medir nunca frena la entrega ── */
-  window.CU_EV = function(nombre, extra){
-    if(typeof fbq !== "function") return;
-    var d = { content_type:"product", content_ids:['motos-pack-base'],
-              value:(parseFloat(window.__precioUSD)||12.99), currency:"USD" };
-    if(extra) for(var k in extra) d[k] = extra[k];
-    try{ fbq("track", nombre, d); }catch(e){}
-  };
-
-  /* ViewContent: el visitante esta viendo el producto. El value es el precio REAL
-     de entrada. Si cambia el precio de venta, cambiar tambien aqui: Meta optimiza
-     con este numero. */
-  window.CU_EV('ViewContent', { content_name: 'MOTO DATA - mas de 1.200 manuales de taller y curso 2T/4T' });
-
-  /* ORDEN 12-oct: el boton ya no abre un chat, abre el checkout de Stripe ⇒ el
-     evento que corresponde es InitiateCheckout (el mismo que ya usa pack-scroll;
-     asi las dos paginas son comparables). Contact se queda pero SOLO donde de
-     verdad hay un contacto: el enlace de soporte por WhatsApp.
-     El precio sale de window.__precio*, NUNCA de la pantalla: el texto visible
-     esta en moneda local y mandaria un value falso (curado en CapCut el 28-sep). */
-  document.addEventListener('click', function(e){
-    if(!e.target.closest) return;
-    var a = e.target.closest('[data-buy]');
-    if(a){ try{ window.CU_EV('InitiateCheckout'); }catch(x){} return; }
-    var s = e.target.closest('[data-soporte]');
-    if(s){ try{ window.CU_EV('Contact'); }catch(x){} }
-  }, true);
-})();
-</script>
-<!-- VEL1: póster del video del hero (lo primero que se ve) con prioridad alta -->
+<script>(function(){var CLAVES=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","fbclid","gclid","ttclid"];var LS="cu_atrib_v1";function guardado(){try{return JSON.parse(sessionStorage.getItem(LS)||"{}")||{}}catch(e){return{}}}function capturar(){var prev=guardado(),hay=false,out={},q;try{q=new URLSearchParams(location.search)}catch(e){return prev}CLAVES.forEach(function(k){var v=q.get(k);if(v){out[k]=v;hay=true}});if(!hay)return prev;out.ts=Date.now();try{sessionStorage.setItem(LS,JSON.stringify(out))}catch(e){}return out}window.CU_ATRIB=capturar();window.CU_TRACK=function(combo){var a=window.CU_ATRIB||{};function limpio(s){return String(s||"").replace(/[^A-Za-z0-9_-]/g,"-")}var q=null;try{q=new URLSearchParams(location.search)}catch(e){}var anuncio=q&&(q.get("ad")||q.get("utm_content"))||a.utm_content||null;if(!anuncio){try{anuncio=sessionStorage.getItem("motosRef")}catch(e){}}var deMeta=!!(a.fbclid||q&&q.get("fbclid")||/facebook\.com|instagram\.com/.test(document.referrer));if(!anuncio&&deMeta)anuncio="MOTOS-META-SINTAG";if(anuncio){try{sessionStorage.setItem("motosRef",limpio(anuncio))}catch(e){}}var src=limpio(a.utm_source||(deMeta?"facebook":"directo"));var ref=[limpio(combo),limpio(a.utm_campaign||"sin-campana"),limpio(anuncio||"sin-anuncio"),src].join("__").slice(0,200);return{src:src,ref:ref}};var PIXEL="29341735888765973";if(!PIXEL)return;!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;t.fetchPriority="high";t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,"script","https://connect.facebook.net/en_US/fbevents.js");fbq("init",PIXEL);fbq("track","PageView");window.CU_EV=function(nombre,extra){if(typeof fbq!=="function")return;var d={content_type:"product",content_ids:["motos-pack-base"],value:parseFloat(window.__precioUSD)||12.99,currency:"USD"};if(extra)for(var k in extra)d[k]=extra[k];try{fbq("track",nombre,d)}catch(e){}};window.CU_EV("ViewContent",{content_name:"MOTO DATA - mas de 1.200 manuales de taller y curso 2T/4T"});document.addEventListener("click",function(e){if(!e.target.closest)return;var a=e.target.closest("[data-buy]");if(a){try{window.CU_EV("InitiateCheckout")}catch(x){}return}var s=e.target.closest("[data-soporte]");if(s){try{window.CU_EV("Contact")}catch(x){}}},true)})()</script>
 <link rel="preload" as="image" href="vid/g1.webp" fetchpriority="high">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MOTO DATA: más de 1.200 manuales de taller de más de 90 marcas · con el diagrama eléctrico de tu moto</title>
 <meta name="description" content="La biblioteca de taller de más de 90 marcas: más de 1.200 manuales con despiece, tablas de torque y diagramas eléctricos, más el curso de mecánica 2T y 4T desde cero. Busca tu marca, tu modelo y tu año. Pago único de US$12.99, con 80% de descuento.">
 <meta name="theme-color" content="#000000">
@@ -119,1536 +28,182 @@
 <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
 <link rel="preload" as="font" type="font/woff2" href="fonts/inter.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="fonts/inter-tight.woff2" crossorigin>
-<style>
-  :root{
-    --bg:#000; --panel:#101012; --panel2:#17171a; --line:#28282d;
-    --tx:#ffffff; --mut:#9a9aa3; --dim:#6e6e77;
-    /* ORDEN AZ1: acentos Yamaha. --red para RELLENOS (botones/barra, texto blanco
-       encima da 4.8:1 AA); --red-tx para TEXTO rojo directo sobre negro/panel (el
-       rojo de marca a secas no llega a 4.5:1 en texto chico, este sí: 5.1-5.6:1).
-       --blue ya aclarado desde el azul racing real (~#1E50A0, 2.4-2.7:1, no pasaba)
-       a uno que sí da AA en texto grande/UI (4.0-4.4:1 sobre negro/panel). */
-    --red:#E60012; --red-tx:#FF2A3C; --blue:#3B72C8;
-    --radius:16px; --max:1080px;
-    --disp:"Inter Tight","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-  .wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
-  h1,h2,h3{font-family:var(--disp);font-weight:900;letter-spacing:-.035em;line-height:1.05}
-  a{color:inherit;text-decoration:none}
-  ::selection{background:#fff;color:#000}
-
-  /* BOTONES estilo CapCut: pastilla blanca, texto negro */
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#000;font-family:var(--disp);font-weight:800;letter-spacing:-.01em;font-size:1.05rem;padding:16px 36px;border-radius:999px;border:none;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 8px 26px -6px rgba(255,255,255,.5),0 0 54px -8px rgba(255,255,255,.4)}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px -6px rgba(255,255,255,.62),0 0 76px -6px rgba(255,255,255,.55)}
-  .btn.big{font-size:1.2rem;padding:20px 46px}
-  .btn.ghost{background:transparent;color:#fff;border:1.5px solid #3a3a40;box-shadow:none}
-  .btn.ghost:hover{border-color:#fff;box-shadow:none}
-  /* ORDEN AZ1: solo los 3 botones DE COMPRA en rojo Yamaha (el del nav queda blanco/negro
-     como antes); blanco sobre --red da 4.8:1 AA */
-  #btn-hero,#btn-pago,.buybar .btn{background:var(--red);color:#fff;box-shadow:0 0 0 1px rgba(230,0,18,.5),0 8px 26px -6px rgba(230,0,18,.85),0 0 54px -6px rgba(230,0,18,.6)}
-  #btn-hero:hover,#btn-pago:hover,.buybar .btn:hover{box-shadow:0 0 0 1px rgba(255,74,86,.7),0 14px 34px -6px rgba(230,0,18,1),0 0 76px -4px rgba(230,0,18,.78)}
-
-  /* MARCA (marca de corte estilo CapCut) */
-  .logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:900;font-size:1.18rem;letter-spacing:-.04em}
-  .logo .mark{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .logo .mark img{width:19px;height:19px;display:block}
-  .logo .sub{font-weight:700;font-size:.72rem;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-left:2px;align-self:flex-end;padding-bottom:2px}
-
-  /* NAV */
-  /* ===== OBRA motos-nav-placa — la barra de arriba cumple el formato de la placa.
-     Medido sobre la placa (uploads/photo_1791852152.jpg), no opinado:
-       fondo        #000 solido (no vidrio: la placa no cambia de brillo al scrollear)
-       filete doble 4px rojo / 4px negro / 6px rojo  -> aqui 2/2/3, mismo orden
-       divisor      6px rojo entre el piso grande y el piso chico
-       rojo placa   #FA1319 (moda de las letras DATA). Blanco encima da 4.06:1 => NO
-                    pasa AA: va a FILETES, nunca de relleno bajo texto. Para relleno
-                    queda --red #E60012 (blanco encima 4.80:1).
-       radio 0      la placa no tiene una sola esquina redonda.
-     Esto solo reescribe nav/. El resto de la pagina no se toca. ===== */
-  nav{--pr:#FA1319;position:sticky;top:0;z-index:50;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);border-bottom:none}
-  nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;pointer-events:none;
-    background:var(--pr)}
-  nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:96px}
-  nav .logo{gap:10px}
-  nav .logo img{display:block;height:auto}
-  /* P2 2026-10-13 ("quita el icono de al lado del logo"): el emblema circular SALE
-     del nav. Se van con el las 3 reglas de tamano que eran SOLO del nav. El emblema
-     se queda donde Esteban lo quiso: en el pie (footer .logo img, logo-mark-512.png)
-     y como favicon/apple-touch (logo-mark-96.png). Las reglas genericas ".logo .mark"
-     NO se tocan: no son del nav. Reversa: devolver el <span class="mark"> y este bloque. */
-  /* el boton deja de ser pastilla blanca y pasa a ser una mini-placa:
-     negro, filete rojo, mayuscula condensada con tracking. Blanco sobre negro = 21:1. */
-  /* ORDEN de Esteban 2026-10-13 (3a vuelta): "pon el boton rojo con letras blancas
-     respetando el formato del que dice quiero el pack". El boton del nav deja de ser
-     mini-placa negra y adopta el MISMO formato visual que #btn-hero ("Quiero el pack"):
-     pastilla radius 999px, relleno --red, letras blancas, familia display 800,
-     tracking -.01em, sin uppercase y con el mismo glow rojo.
-     SE USA --red (#E60012 => blanco 4.80:1) y NO el rojo de la placa --pr (#FA1319 =>
-     blanco 4.06:1, reprueba). El tamano sigue siendo el compacto del nav (media
-     queries de abajo) para que placa + boton quepan de 320px a 390px. */
-  nav .btn{background:var(--red);color:#fff;border:none;border-radius:999px;
-    padding:12px 24px;font-family:var(--disp);font-weight:800;font-size:.95rem;letter-spacing:-.01em;
-    text-transform:none;white-space:nowrap;box-shadow:0 0 0 1px rgba(230,0,18,.5),0 8px 26px -6px rgba(230,0,18,.85),0 0 54px -6px rgba(230,0,18,.6);
-    transition:transform .15s ease,box-shadow .15s ease}
-  nav .btn:hover{background:var(--red);color:#fff;transform:translateY(-2px);box-shadow:0 0 0 1px rgba(255,74,86,.7),0 14px 34px -6px rgba(230,0,18,1),0 0 76px -4px rgba(230,0,18,.78)}
-  /* ===== ORDEN de Esteban 2026-10-13: "me gusta el formato de diseno pero dejemos el
-     logo original, solo integralo bien". Vuelve la PLACA COMPLETA (marco rojo doble +
-     MOTO DATA + WORKSHOP MANUALS) tal cual la mando, no las letras sueltas.
-     POR QUE AHORA SI SE INTEGRA (y antes parecia calcomania):
-       - el nav ya es #000 solido, el MISMO negro del interior de la placa => el marco
-         rojo se apoya sobre la barra, no sobre un parche propio que no scrollea igual.
-       - el PNG se recorto AL FILETE ROJO EXACTO (bbox medido sobre el original:
-         x40,y84 -> x1241,y343) y el ruido JPEG del interior se clavo a #000: sin halo.
-       - AIRE: la barra sube a 88px para que la placa (59px) respire ~14px arriba y abajo.
-       - el divisor de la banda baja de 2px ROJO a 1px gris: con la placa puesta habia
-         CUATRO lineas rojas en 110px. Manda un solo marco rojo (el de la placa) y el
-         filete doble de abajo cierra la barra. La banda sigue siendo el piso chico de
-         la placa desenrollado a lo ancho — el formato que ya estaba aprobado.
-       - MOVIL (<=560px): el boton sale del nav y la placa se centra a 70vw. A 360px no
-         caben los dos (placa 4,6:1 + boton = 371px sobre 360 utiles) y el CTA ya lo
-         cubre la .buybar fija de abajo, que en <=820px esta siempre puesta.
-     ===== */
-  /* ===== ORDEN de Esteban 2026-10-13 (2a vuelta): "me gusta el logo a mano izquierda
-     y el boton de al lado COMPRAR AHORA; quita lo de despiece diagramas y eso y
-     cierralo con ese formato rojo que dejaste".
-       - FUERA la banda tecnica: el nav queda en UN piso (placa izquierda + CTA derecha).
-       - el cierre rojo es el filete doble de nav::after, que SE QUEDA: es el "formato
-         rojo" aprobado y ahora es la unica linea roja de la barra ademas del marco de
-         la placa.
-       - el boton YA NO desaparece en movil (antes <=560px lo escondia). Aritmetica a
-         ARITMETICA 13-oct, con el EMBLEMA CIRCULAR delante (medida en chromium, no a ojo):
-         el nav es emblema + placa + CTA "Quiero el pack". Medido scrollLateral=0 en
-         320 / 360 / 390 / 414 / 1280 px y el CTA en 1 sola linea en los cinco.
-         <=560px: emblema 34px + gap 8 + placa 42vw + CTA ~103px.
-         <=380px: emblema 30px + gap 6 + placa 38vw + CTA ~103px (en 320px sobran ~7px).
-     ===== */
-  /* ORDEN de Esteban 2026-10-13: "la parte de arriba quedo muy pegada, separala
-     natural asi como el de melamina que se ve bonito". El nav de melamina respira:
-     barra ~100px con un logo que ocupa ~1/3 de su alto. Aca el logo de 280px medidos
-     daba 51px de alto en 84px de barra => 16px de aire arriba y abajo y se leia
-     apretado contra el filete rojo. Sube la barra y baja un poco el logo: el aire
-     vertical pasa de 16px a 29px y el gap logo-boton de 16 a 24.
-     REVERSA: logo 280/244/182/150 y barra 84/88/80. */
-  nav .logo img{width:252px}
-  nav .wrap{height:106px}
-  /* ORDEN 13-oct: el nav se leia "pegado" tambien de costado — logo a 20px del
-     borde izquierdo y CTA a 20px del derecho, igual que el texto del cuerpo, asi
-     que la barra se veia llena de punta a punta. Melamina respira mas. Sube SOLO
-     el padding lateral del nav. A 320px quedaban 34.5px de aire => soporta +12.
-     REVERSA: borrar esta regla. */
-  nav .wrap{padding-left:26px;padding-right:26px}
-  @media(max-width:820px){nav .wrap{height:98px;gap:18px}nav .logo img{width:min(222px,41vw)}
-    /* ORDEN 13-oct P2 (Esteban): "el boton ponklo mas grande [...] nos toca
-       agrandar un poco la barra de arriba". Permiso de diseno SOLO para el nav. */
-    nav .btn{padding:14px 24px;font-size:1rem;letter-spacing:-.01em}}
-  @media(max-width:560px){nav .wrap{height:92px;gap:14px;justify-content:space-between}
-    nav .logo img{width:min(166px,37vw)}
-    nav .logo{gap:8px}
-    nav .btn{padding:13px 20px;font-size:.92rem;letter-spacing:-.01em}}
-  @media(max-width:380px){nav .logo img{width:min(142px,32vw)}
-    nav .logo{gap:6px}
-    nav .btn{padding:12px 16px;font-size:.85rem;letter-spacing:-.01em}}
-
-  /* HERO */
-  /* ORDEN AZ9 (Esteban): glow rojo suave detrás del celular, además del glow blanco
-     general que ya había (radial a 50%/0% sin tocar) */
-  header{position:relative;padding:74px 0 60px;background:radial-gradient(55% 55% at 82% 32%,rgba(230,0,18,.14),transparent 70%),radial-gradient(85% 60% at 50% 0%,rgba(255,255,255,.07),transparent 70%)}
-  /* ORDEN AZ1: nombro las 6 piezas del hero por grid-area en vez de mover el DOM, así
-     desktop sigue siendo 2 columnas (device ocupa las 5 filas de texto, centrado igual
-     que antes) y el móvil solo cambia el ORDEN VISUAL vía @media, sin duplicar markup.
-     column-gap (no "gap" a secas): con 5 filas de texto, un row-gap heredado metería
-     4 espacios de más entre pill/h1/sub/cta/note que antes no existían (antes "gap"
-     solo se notaba una vez, entre hero-copy y device, porque eran las únicas 2 celdas) */
-  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;column-gap:44px;row-gap:0;align-items:center;
-    grid-template-areas:"pill device" "h1 device" "sub device" "chips device" "cta device" "note device"}
-  .hero-grid>.pill{grid-area:pill}
-  .hero-grid>h1{grid-area:h1}
-  .hero-grid>p.sub{grid-area:sub}
-  .hero-grid>.cta-row{grid-area:cta}
-  .hero-grid>.cta-note{grid-area:note}
-  .hero-grid>.trust-row{grid-area:chips}
-  .hero-grid>.device{grid-area:device}
-  .pill{display:inline-flex;gap:10px;align-items:center;font-size:.8rem;font-weight:700;color:#fff;background:#17171a;border:1px solid var(--blue);padding:7px 16px;border-radius:999px;margin-bottom:22px;letter-spacing:.01em}
-  .pill b{color:#fff}
-  header h1{font-size:clamp(2.2rem,6vw,3.8rem);margin-bottom:18px}
-  header h1 .cut{position:relative;display:inline-block}
-  header h1 .cut::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.14em;background:var(--red);transform:skewX(-18deg)}
-  header p.sub{font-size:clamp(1.05rem,2.4vw,1.28rem);color:var(--mut);max-width:600px;margin:0 0 30px}
-  header p.sub b{color:#fff}
-  .cta-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-  .cta-note{color:var(--dim);font-size:.85rem;margin-top:14px}
-  /* ORDEN AZ9: pastillas de confianza bajo la nota del CTA, mismas cifras/promesas reales
-     que ya están en la página (precio único, acceso inmediato, garantía 3 días del bloque
-     de precio y FAQ) — nada nuevo, solo resumido arriba */
-  .trust-row{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
-  /* ORDEN 13-oct (Esteban): el bloque de confianza de la caja de compra va "igual
-     que el de melamina" => pastillas centradas bajo el boton, tambien en escritorio
-     (en movil ya centraba la media query). REVERSA: borrar esta sola linea. */
-  #comprar .trust-row{justify-content:center;gap:8px;margin-top:10px}
-  #comprar .trust-chip{font-size:.74rem;font-weight:600;gap:6px;padding:6px 11px}
-  .trust-chip .e{display:inline-flex;line-height:1}
-  .trust-chip{display:inline-flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:.82rem;color:#fff;background:#141416;border:1px solid var(--line);border-radius:999px;padding:8px 14px}
-
-  /* MOCKUP TELÉFONO (editor CapCut en blanco y negro) */
-  .device{position:relative;width:262px;justify-self:center;filter:drop-shadow(0 34px 80px rgba(255,255,255,.14))}
-  /* ORDEN AZ9: glow rojo suave detrás del celular, dentro del mismo contexto de apilado
-     que crea el filter de arriba (por eso basta con z-index:-1, no hace falta tocar nada más) */
-  .device::before{content:"";position:absolute;inset:-36px;z-index:-1;border-radius:50%;background:radial-gradient(60% 60% at 50% 46%,rgba(230,0,18,.38),transparent 72%);filter:blur(4px);pointer-events:none}
-  .phone{background:#0a0a0c;border:2px solid #2e2e34;border-radius:42px;padding:11px;position:relative}
-  .phone::before{content:"";position:absolute;top:14px;left:50%;transform:translateX(-50%);width:80px;height:6px;border-radius:99px;background:#1c1c21;z-index:3}
-  .screen{border-radius:32px;overflow:hidden;background:#000;border:1px solid #1e1e24}
-  .pv{position:relative;overflow:hidden;aspect-ratio:9/12;background:radial-gradient(120% 75% at 50% 22%,rgba(255,255,255,.16),transparent 62%),linear-gradient(165deg,#1e1e24,#060608);display:flex;align-items:center;justify-content:center}
-  .pv .yt-hero{position:absolute;top:50%;left:50%;width:102%;height:136%;transform:translate(-50%,-50%);border:0;pointer-events:none;z-index:1}
-  .pv .pv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(.85)}
-  .pv .tag{position:absolute;z-index:2;top:12px;left:12px;font-size:.6rem;font-weight:800;color:#000;background:#fff;padding:4px 10px;border-radius:99px}
-  .pv .rec{position:absolute;z-index:2;top:12px;right:12px;font-size:.58rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px}
-  .pv .rec::before{content:"";width:7px;height:7px;border-radius:50%;background:#ff4d5e;box-shadow:0 0 8px #ff4d5e}
-  .pv .play{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.16);backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center}
-  .pv .play::after{content:"";border-left:14px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}
-  .tl{background:#0b0b0e;padding:10px 9px}
-  /* ORDEN AZ9: la franja de abajo del celular pasa de ser una línea de tiempo decorativa
-     a mini-thumbnails reales de los 3 clips del carrusel, con su propia barra de progreso.
-     Todo el avance (crossfade de slides + resaltado del thumb activo + progreso) es un único
-     @keyframes por slide via animation-delay, sin JS: así el autoplay no depende de llamar
-     video.play()/decode() a mano, que es justo lo que rompía en WebKit (ver AZ5). */
-  .tl .thumbs{display:flex;gap:6px}
-  .tl .thumb{position:relative;flex:1;height:34px;border-radius:7px;background-size:cover;background-position:center;overflow:hidden;opacity:.4;filter:grayscale(.4);animation:dvThumb 9s infinite}
-  .tl .thumb .fill{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--red);animation:dvFill 9s infinite}
-  .tl .t1{animation-delay:0s}.tl .t1 .fill{animation-delay:0s}
-  .tl .t2{animation-delay:-3s}.tl .t2 .fill{animation-delay:-3s}
-  .tl .t3{animation-delay:-6s}.tl .t3 .fill{animation-delay:-6s}
-
-  /* CIFRAS */
-  /* ORDEN AZ9: grid 2x2 fijo (antes 4 en fila en desktop, 2x2 solo en mobile) + número
-     grande en rojo (antes azul solo en las 2 primeras, desde AZ1) — el azul de marca sigue
-     vivo en el pill del hero; el reloj paso a rojo el 12-oct, ya no usa --blue) */
-  .badges{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:52px auto 0;max-width:480px}
-  .badge{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 12px;text-align:center}
-  .badge .n{font-family:var(--disp);font-size:clamp(1.6rem,4vw,2.3rem);font-weight:900;line-height:1;letter-spacing:-.03em;color:var(--red-tx)}
-  .badge .l{color:var(--mut);font-size:.82rem;margin-top:7px}
-
-  section{padding:66px 0}
-  .eyebrow{color:var(--red-tx);font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px}
-  h2.title{font-size:clamp(1.8rem,4.5vw,2.7rem);margin-bottom:14px}
-  .lead{color:var(--mut);font-size:1.08rem;max-width:640px;margin-bottom:8px}
-  .lead b{color:#fff}
-
-  /* GRID QUÉ INCLUYE */
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:border-color .2s}
-  .card:hover{border-color:#4a4a52}
-  .card .ic{font-size:1.6rem;margin-bottom:12px}
-  .card h3{font-size:1.15rem;margin-bottom:8px;letter-spacing:-.02em}
-  .card p{color:var(--mut);font-size:.95rem}
-
-  /* GALERÍA DE EFECTOS (monocromo CapCut) */
-  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:36px}
-  .gallery-big{display:flex;flex-direction:column;gap:28px;margin-top:36px}
-  .fx{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:1px solid var(--line);display:flex;align-items:flex-end;padding:14px;isolation:isolate;transition:transform .18s ease,border-color .18s}
-  .gallery-big .fx{padding:22px}
-  .gallery-big .fx span{font-size:1.3rem}
-  .gallery-big .fx-labels li{font-size:.9rem}
-  .fx .yt-live{position:absolute;top:50%;left:50%;width:101%;height:135%;transform:translate(-50%,-50%);border:0;pointer-events:none;z-index:-1}
-  .fx .fx-th{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
-  .fx::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--g)}
-  .fx::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(90% 60% at 30% 18%,rgba(255,255,255,.20),transparent 55%),linear-gradient(180deg,transparent 30%,rgba(0,0,0,.78))}
-  .fx .ply{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center}
-  .fx .ply::after{content:"";border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px}
-  .fx span{font-family:var(--disp);font-weight:800;font-size:.95rem;line-height:1.15;letter-spacing:-.01em;text-shadow:0 2px 10px rgba(0,0,0,.7);z-index:1}
-  .fx.g1{--g:linear-gradient(150deg,#f2f2f5,#3a3a42)}
-  .fx.g2{--g:linear-gradient(150deg,#c9c9d1,#26262d)}
-  .fx.g3{--g:linear-gradient(150deg,#9d9da6,#1b1b21)}
-  .fx.g4{--g:linear-gradient(150deg,#84848d,#141419)}
-  .fx.g5{--g:linear-gradient(150deg,#6b6b74,#101014)}
-  .fx.g6{--g:linear-gradient(150deg,#55555e,#0c0c10)}
-  .fx.g7{--g:linear-gradient(150deg,#41414a,#09090c)}
-  .fx.g8{--g:linear-gradient(150deg,#2f2f37,#060608)}
-  .fx-note{color:var(--dim);font-size:.85rem;margin-top:16px}
-  /* tarjetas "pack": título fijo arriba + lista de piezas que aparece al final del clip */
-  .fx-pack{display:block}
-  .fx-pack>span{position:absolute;left:13px;top:12px;z-index:3}
-  .fx-labels{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-end;padding:13px 12px;background:linear-gradient(180deg,transparent 32%,rgba(0,0,0,.94) 66%);opacity:0;transition:opacity .55s ease;pointer-events:none}
-  .fx-labels.show{opacity:1}
-  .fx-labels ul{list-style:none;columns:2;column-gap:10px;width:100%}
-  .fx-labels li{font-family:var(--sans);font-weight:700;font-size:.72rem;line-height:1.6;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.95);break-inside:avoid}
-  @media(min-width:768px){
-    .gallery-big{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start}
-    .gallery-big .fx{aspect-ratio:9/16;max-height:80vh;width:100%;height:auto}
-    .gallery-big .fx .fx-th,.gallery-big .fx video{object-fit:contain}
-  }
-
-  /* PASOS */
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}
-  .step{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
-  .step .num{width:38px;height:38px;border-radius:50%;background:#fff;color:#000;font-family:var(--disp);font-weight:900;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-  .step h3{font-size:1.1rem;margin-bottom:8px}
-  .step p{color:var(--mut);font-size:.94rem}
-
-  /* ACORDEÓN */
-  .acc{margin-top:34px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel)}
-  details{border-bottom:1px solid var(--line)}
-  details:last-child{border-bottom:none}
-  summary{cursor:pointer;list-style:none;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:1.03rem;gap:14px}
-  summary::-webkit-details-marker{display:none}
-  summary .meta{color:var(--mut);font-weight:600;font-size:.85rem;flex-shrink:0}
-  summary::after{content:"+";color:#fff;font-size:1.5rem;font-weight:300;flex-shrink:0}
-  details[open] summary::after{content:"−"}
-  .acc-body{padding:0 24px 22px;color:var(--mut);font-size:.95rem}
-  .acc-body ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
-  .acc-body li{padding-left:18px;position:relative}
-  .acc-body li::before{content:"›";position:absolute;left:0;color:#fff}
-  /* ===== P5 2026-10-13 ("el 1 2 3 estan desordenadas las letras, cuadralas"):
-     el numero sale del texto y se va a una FICHA CUADRADA de ancho FIJO (34px, igual
-     en los 3), y el summary pasa de flex a grid de 4 columnas
-     [ficha | titulo | meta | +]. Asi los 3 titulos arrancan en la MISMA X.
-     MEDIDO ANTES (chromium, 360px): el titulo 1 se partia en 5 lineas y las filas
-     median 168 / 91 / 77px porque la .meta es flex-shrink:0 y le comia el ancho.
-     En <=700px la meta BAJA a su propia fila debajo del titulo.
-     Alcance: SOLO #contenido-completo. El acordeon del FAQ no se toca (misma clase
-     .acc, por eso cada regla va prefijada). Radio 10px: valor que la pagina ya usa.
-     Reversa: borrar este bloque y devolver los 3 <summary> de dos spans. ===== */
-  #contenido-completo .acc summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
-    align-items:center;column-gap:14px;row-gap:2px}
-  #contenido-completo .acc summary .nb{grid-area:1/1;width:34px;height:34px;display:flex;
-    align-items:center;justify-content:center;background:#17171a;border:1px solid var(--line);
-    border-radius:10px;font-family:var(--disp);font-weight:900;font-size:1rem;color:#fff}
-  #contenido-completo .acc summary .tt{grid-area:1/1;min-width:0}
-  /* ORDEN 13-oct (Esteban): "en lo de los emojis ponle espacio porque esta pegado a
-     las letras". El emoji medido ocupa ~18px dentro de una ranura de 22 => quedaba
-     a 4px del texto. Ranura 22px + 10px de margen = separacion real. */
-  #contenido-completo .acc summary .tt .em{display:inline-block;width:22px;margin-right:10px}
-  #contenido-completo .acc summary .meta{grid-area:1/2}
-  #contenido-completo .acc summary::after{grid-area:1/3}
-  @media(max-width:700px){
-    #contenido-completo .acc summary{grid-template-columns:minmax(0,1fr) auto}
-    #contenido-completo .acc summary .nb{grid-area:1/1/span 2/2;align-self:center}
-    #contenido-completo .acc summary .meta{grid-area:2/1;text-align:left;flex-shrink:1}
-    #contenido-completo .acc summary::after{grid-area:1/2/span 2/3;align-self:center}
-  }
-
-  /* BANDA CINEMATOGRÁFICA */
-  .band{position:relative;min-height:360px;display:flex;align-items:center;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .band img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:grayscale(.25) contrast(1.05)}
-  .band::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#000 8%,rgba(0,0,0,.74) 44%,rgba(0,0,0,.22) 100%)}
-  .band .wrap{padding:62px 20px}
-  .band h2{font-size:clamp(1.6rem,4.2vw,2.5rem);max-width:600px;margin-bottom:12px}
-  .band p{color:#d4d4d8;max-width:500px;font-size:1.05rem}
-
-  /* SHOWCASE */
-  .showcase{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:8px}
-  .showcase .shot{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);aspect-ratio:3/2;box-shadow:0 24px 60px -24px rgba(0,0,0,.9)}
-  .showcase .shot img{width:100%;height:100%;object-fit:cover;display:block}
-  .sc-list{list-style:none;margin-top:18px;display:grid;gap:10px}
-  .sc-list li{padding-left:26px;position:relative;color:var(--mut)}
-  .sc-list li::before{content:"✓";position:absolute;left:0;color:#fff;font-weight:900}
-
-  /* GARANTÍA */
-  .guar{background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:44px;text-align:center;max-width:760px;margin:0 auto}
-  .guar .shield{font-size:3rem;margin-bottom:12px}
-
-  /* PRECIO */
-  .price-card{background:linear-gradient(160deg,var(--panel2),#000);border:1.5px solid #fff;border-radius:24px;padding:46px 34px;text-align:center;max-width:520px;margin:38px auto 0;box-shadow:0 0 80px -24px rgba(255,255,255,.45)}
-  .price-label{color:var(--mut);font-size:.9rem}
-  .ancla{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 2px}
-  .ancla s{color:var(--dim);font-family:var(--disp);font-weight:400;font-size:1.35rem;text-decoration-thickness:2px}
-  .ancla .off{background:#fff;color:#000;font-family:var(--disp);font-weight:900;font-size:.9rem;letter-spacing:-.01em;padding:5px 11px;border-radius:999px;white-space:nowrap}
-  /* P6 2026-10-13: el contador "pasaba inadvertido". Mismo nodo y mismo JS; cambia como
-     se ve: deja de ser una fila con el numero del tamano del texto y pasa a bloque propio,
-     rotulo arriba y DIGITOS GRANDES en rojo. El punto que late es el indicador de que
-     corre (no dice nada nuevo: la palabra sigue siendo la que ya usaba la pagina).
-     REVERSA: estas 3 reglas por las 3 de antes (1.2rem, flex en fila, borde dashed). */
-  .reloj{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#1b0f11;border:1px solid var(--red-tx);border-radius:14px;padding:12px 16px;margin:16px auto 22px;max-width:420px}
-  .reloj .rl{display:flex;align-items:center;gap:7px;color:var(--red-tx);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
-  .reloj .pt{width:9px;height:9px;border-radius:50%;background:var(--red-tx);flex-shrink:0;animation:ltd 1s steps(1,end) infinite}
-  @keyframes ltd{0%,50%{opacity:1}51%,100%{opacity:.18}}
-  @media(prefers-reduced-motion:reduce){.reloj .pt{animation:none}}
-  .reloj b{font-family:var(--disp);font-weight:900;font-size:2.6rem;line-height:1;color:var(--red-tx);font-variant-numeric:tabular-nums;letter-spacing:.01em}
-  .price-now{font-family:var(--disp);font-size:3.6rem;font-weight:900;line-height:1;margin:6px 0 4px;letter-spacing:-.04em}
-  .price-per{display:inline-block;background:#17171a;border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:.85rem;font-weight:700;color:var(--mut);margin-top:12px}
-  .price-per b{color:#fff}
-  .price-list{list-style:none;text-align:left;margin:26px 0;display:grid;gap:9px}
-  .price-list li{padding-left:30px;position:relative;color:var(--tx)}
-  /* P4 2026-10-13 ("ponle que se vea que trae varias cosas"): la lista pasa de 4 items
-     a 12 cortos, y el UNICO ✓ que habia se cambia por el emoji DEL item. El emoji va
-     en la MISMA ranura del marcador (position:absolute, ancho fijo 22px) para que los
-     12 textos arranquen en la misma X y cada renglon quepa en UNA linea a 320px.
-     El tamano de letra NO se toca (el target lee mal). Reversa: este bloque + el <ul>. */
-  /* ORDEN 13-oct P4 (Esteban): "los emojis en el boton no dasn confianza no se ve
-     profesional". 12 emojis distintos -> UNA marca sola, monocroma, en el rojo que
-     la pagina YA usa (--red-tx, el del precio y el reloj). Cero colores nuevos.
-     La lista NO se recorta: quedan 11 items, uno por renglon. */
-  .price-list li .ic{position:absolute;left:0;top:0;width:22px;text-align:center;font-style:normal;line-height:inherit;color:var(--red-tx);font-weight:900}
-  .price-card .btn{width:100%}
-  /* P5 2026-10-13: en celular la caja tenia 34px de padding a cada lado y dejaba 250px
-     utiles: hasta un bullet de 3 palabras se partia. Se afloja SOLO el padding lateral
-     (el tamano de letra NO se toca: el target lee mal, achicar seria peor).
-     REVERSA: borrar este bloque. */
-  @media(max-width:560px){.price-card{padding:34px 18px}
-    .price-list li{padding-left:26px}
-    /* 13-oct: "ACCEDE AHORA · US$12.99 →" se partia en 2 lineas a 360px. */
-    #btn-pago{font-size:1rem;padding:18px 16px;white-space:nowrap}}
-
-  /* ===== ORDEN de Esteban 2026-10-13: "el cuadro de venta hazlo mas oficial porque se
-     ve raro como lo pusiste". La lista deja de ser bullets sueltos flotando y pasa a
-     FICHA: encabezado con filete, un renglon por fila con divisor fino y la marca en
-     una casilla de ancho fijo (lo que hace que lea como documento, no como apunte).
-     Cero colores nuevos: --line y --red-tx ya estan en la pagina. El tamano de letra
-     NO baja (target que lee mal). Alcance: SOLO .price-list / .pl-head dentro de la
-     caja de precio. REVERSA: borrar este bloque y el <div class="pl-head">. ===== */
-  .pl-head{display:flex;align-items:center;gap:12px;margin:28px 0 0;text-align:left;
-    color:var(--mut);font-family:var(--disp);font-weight:800;font-size:.74rem;
-    letter-spacing:.16em;text-transform:uppercase}
-  .pl-head::after{content:"";flex:1;height:1px;background:var(--line)}
-  .price-list{margin:12px 0 26px;gap:0;border-top:1px solid var(--line)}
-  .price-list li{position:relative;padding:11px 2px 11px 34px;border-bottom:1px solid var(--line)}
-  .price-list li .ic{position:absolute;left:0;top:10px;width:21px;height:21px;
-    display:inline-flex;align-items:center;justify-content:center;border-radius:6px;
-    background:rgba(230,0,18,.13);border:1px solid rgba(230,0,18,.40);
-    color:var(--red-tx);font-size:.72rem;font-weight:900;line-height:1}
-  @media(max-width:560px){.price-list li{padding-left:32px}}
-
-  footer{border-top:1px solid var(--line);padding:40px 0 110px;text-align:center;color:var(--mut);font-size:.85rem}
-  .disc{color:#5c5c64;font-size:.75rem;max-width:720px;margin:16px auto 0;line-height:1.5}
-
-  /* BARRA DE COMPRA FIJA (móvil) */
-  .buybar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;align-items:center;justify-content:space-between;gap:12px;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
-  .buybar .p{font-family:var(--disp);font-weight:900;font-size:1.25rem;letter-spacing:-.02em;line-height:1.1}
-  .buybar .p small{display:block;font-family:var(--sans);font-weight:600;font-size:.68rem;color:var(--mut);letter-spacing:.02em}
-  .buybar .btn{padding:12px 22px;font-size:.95rem;flex-shrink:0}
-  /* la barra se esconde DESLIZANDOSE (transform+opacity, en el compositor),
-     nunca con display: display no es animable y relayoutea toda la pagina.
-     110% y no 100% para que salga tambien el borde de arriba. */
-  .buybar{transform:translateY(0);opacity:1;will-change:transform,opacity;contain:layout;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s linear}
-  .buybar.oculta{transform:translateY(110%);opacity:0;pointer-events:none;visibility:hidden;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s linear,visibility 0s linear .24s}
-  .buybar:not(.oculta){visibility:visible;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s linear,visibility 0s}
-  @media(prefers-reduced-motion:reduce){.buybar{transition:none}}
-
-
-  /* ORDER BUMPS */
-  .bumps{margin:2px 0 24px;display:grid;gap:10px;text-align:left}
-  .bump{display:flex;align-items:center;gap:12px;background:#101012;border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;transition:border-color .15s}
-  .bump:hover{border-color:#5a5a63}
-  .bump.on{border-color:#fff}
-  .bump input{display:none}
-  .bump .bx{width:22px;height:22px;border-radius:6px;border:1.5px solid #4a4a52;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#000;transition:.15s}
-  .bump input:checked ~ .bx{background:#fff;border-color:#fff}
-  .bump input:checked ~ .bx::after{content:"\2713"}
-  .bump .bt{flex:1;font-size:.92rem;line-height:1.3}
-  .bump .bt small{display:block;color:var(--mut);font-weight:500;font-size:.8rem}
-  .bump .bp{font-family:var(--disp);font-weight:900;font-size:1.05rem}
-  .bump-nota{font-size:.82rem;color:var(--mut);text-align:center;background:#17171a;border:1px dashed #3a3a40;border-radius:10px;padding:8px 12px}
-  .bump-nota b{color:#fff}
-  /* BONOS OCULTOS (orden de Esteban, ya aplicada en melamina 2026-09-29: "los
-     bonos distraen"). Solo se ESCONDE el bloque: los dos checkbox siguen en
-     el DOM y sin marcar, up() resuelve siempre la clave "base" y el botón
-     sirve el precio base. No se tocó ningún precio, link ni el pixel.
-     REVERSA: borrar esta única regla y los bonos vuelven tal cual estaban. */
-  .bumps{display:none!important}
-
-  @media(max-width:820px){
-    .grid,.steps{grid-template-columns:1fr}
-    .acc-body ul{grid-template-columns:1fr}
-    /* ORDEN AZ1: en móvil, H1 → sub → VIDEO → botón → nota (pill queda arriba de todo, no
-       la mueve la orden). row-gap:0 (ver nota arriba) + el margin de .device reproduce el
-       único espaciado de 36px que había antes (ahora alrededor del video, donde quedó).
-       ORDEN BA1 (Esteban): "chips" (pastillas de confianza) sube antes del video (ya no
-       después de "note") y .cta-note se oculta en móvil porque repite lo mismo que los chips. */
-    .hero-grid{grid-template-columns:1fr;text-align:center;row-gap:0;
-      grid-template-areas:"pill" "h1" "sub" "chips" "device" "cta"}
-    .pill{margin-left:auto;margin-right:auto}
-    header p.sub{margin-left:auto;margin-right:auto}
-    .cta-row{justify-content:center}
-    .cta-note{display:none}
-    /* ORDEN 13-oct: el renglon de confianza de la caja de compra SI se muestra en
-       movil (la regla de arriba lo escondia porque el del HERO repetia los chips).
-       Es el "Pago seguro · Acceso inmediato al confirmar" de la foto de melamina.
-       REVERSA: borrar esta sola linea. */
-    #comprar .cta-note{display:block;text-align:center}
-    /* ORDEN 13-oct P1 (Esteban): "sube mas el celular mas pc esta muy abajo".
-       header{padding:74px 0 60px} metia 74px de negro muerto entre el nav y la
-       pastilla: a 360px arrancaba en y=142. Solo baja el padding de ARRIBA y solo
-       en movil. REVERSA: borrar esta sola linea. */
-    /* ORDEN 13-oct (Esteban, foto de melamina): "la parte de arriba quedo muy
-       pegada, separala natural asi como el de melamina". MEDIDO a 360px antes:
-       nav termina en y=92 y la pastilla arrancaba en y=114 => 22px de aire contra
-       el filete rojo, y pill->h1 otros 22px. Melamina respira el doble. Sube el
-       aire nav->pill a 38 y pill->h1 a 30, SIN volver a los 74px originales (su
-       orden previa fue "sube mas el celular + PC"). REVERSA: padding-top:22px y
-       borrar la linea de .pill. */
-    header{padding-top:38px}
-    .pill{margin-bottom:30px}
-    .trust-row{justify-content:center}
-    .device{width:225px;margin:36px auto}
-    .gallery{grid-template-columns:repeat(2,1fr);gap:8px}
-    .fx{padding:9px;border-radius:11px}
-    .fx span{font-size:.68rem}
-    .fx .ply{display:none}
-    .fx-labels li{font-size:.66rem;line-height:1.5}
-    .showcase{grid-template-columns:1fr}
-    .band .wrap{padding:48px 20px}
-    .buybar{display:flex}
-  }
-  @font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter.woff2) format('woff2')}
-  @font-face{font-family:'Inter Tight';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-tight.woff2) format('woff2')}
-  .logo .mark{background:#000;border:1px solid #2e2e34}
-  .logo .mark img{width:30px;height:30px}
-  /* video real dentro del teléfono */
-  .pv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
-  .pv::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.35),transparent 30%,transparent 70%,rgba(0,0,0,.55))}
-  .pv .cap{position:absolute;z-index:2;left:12px;right:12px;bottom:12px;font-family:var(--disp);font-weight:800;font-size:.8rem;line-height:1.2;text-align:left}
-  .pv .cap small{display:block;font-family:var(--sans);font-weight:600;font-size:.62rem;color:#c9c9d1;margin-top:3px}
-  /* ORDEN AZ9: carrusel de 3 clips dentro del mockup — los 3 <video> autoplay nativo
-     (atributo autoplay, nada de JS llamando .play()) y solo el CROSSFADE entre slides es
-     CSS puro: mismo @keyframes de 9s con animation-delay -3s/-6s para que avancen solos y
-     queden sincronizados con los thumbnails de abajo (mismo timing en dvThumb/dvFill). */
-  .pv .slide{position:absolute;inset:0;opacity:0;animation:dvSlide 9s infinite}
-  /* El video unificado va DEBAJO de los rotulos: .pv video lo manda a z-index:1 y taparia
-     los .slide (z-index:auto). Apilado, no apariencia. */
-  .pv>video.hero-uno{z-index:0}
-  /* SINCRONIA: hasta hoy los rotulos y los thumbs arrancaban al parsear y el video al
-     acabar de cargar => offset fijo entre lo que se ve y el thumb resaltado. Esperan al
-     primer "playing". FAIL-OPEN: .dv-wait solo la pone el JS y solo el JS la quita. */
-  .device.dv-wait .pv .slide,
-  .device.dv-wait .tl .thumb,
-  .device.dv-wait .tl .thumb .fill{animation-play-state:paused}
-  .pv .s1{animation-delay:0s}
-  .pv .s2{animation-delay:-3s}
-  .pv .s3{animation-delay:-6s}
-  @keyframes dvSlide{0%{opacity:0}3%,30%{opacity:1}33%,100%{opacity:0}}
-  @keyframes dvThumb{0%{opacity:.4;filter:grayscale(.4)}3%,30%{opacity:1;filter:none}33%,100%{opacity:.4;filter:grayscale(.4)}}
-  @keyframes dvFill{0%,3%{width:0}30%{width:100%}30.1%,100%{width:0}}
-  @media(prefers-reduced-motion:reduce){
-    .pv .slide,.tl .thumb,.tl .thumb .fill{animation:none}
-    .pv .s1{opacity:1}
-    .tl .t1{opacity:1;filter:none}
-  }
-  /* MARCAS */
-  .marcas{padding:44px 0 6px}
-  .marcas-lb{text-align:center;color:var(--mut);font-weight:800;font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:18px}
-  .cinta{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);margin:12px 0}
-  .cinta-track{display:flex;align-items:center;width:max-content;animation:marq 60s linear infinite;will-change:transform;transform:translate3d(0,0,0)}
-  .cinta-rev .cinta-track{animation-name:marq-rev;animation-duration:66s}
-  .cinta-grp{display:flex;align-items:center;gap:40px;padding-right:40px}
-  .cinta-it{display:flex;align-items:center;height:24px;flex:0 0 auto}
-  .cinta-track img{height:24px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.62}
-  .cinta-tx{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:.8rem;opacity:.62}
-  @keyframes marq{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
-  @keyframes marq-rev{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}
-  @media(prefers-reduced-motion:reduce){.cinta-track{animation:none}}
-  /* DESPIECE: se abre mientras pasa por la pantalla, SIN quedarse pegado */
-  .dp{padding:70px 0 40px;text-align:center;overflow:hidden}
-  .dp .lead{margin-left:auto;margin-right:auto}
-  .dp-stage{position:relative;max-width:1080px;margin:26px auto 0}
-  .dp-stage canvas{display:block;width:100%;height:auto;aspect-ratio:1280/732}
-  .dp-bar{max-width:280px;height:3px;border-radius:99px;background:#1c1c21;margin:18px auto 0;overflow:hidden}
-  .dp-bar i{display:block;height:100%;width:calc(var(--t,0)*100%);background:var(--red)}
-  .dp-piezas{list-style:none;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px auto 0;max-width:640px;padding:0 20px}
-  .dp-piezas li{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-family:var(--disp);font-weight:800;font-size:.8rem}
-  @media(max-width:820px){.dp-stage{width:100%;margin-left:0;padding:0 4px}}
-  /* ORDEN AZ6 (Esteban): acortar el aire alrededor de las 2 animaciones en móvil para que el
-     contenido aparezca antes al ojo. Medido con Playwright en 390px: el padding propio de
-     #despiece (70px/40px) y el margin-top de .dp-stage (26px) eran los huecos grandes; el
-     hueco canvas->chips (dp-bar + dp-piezas, 33px) y el hueco lead->motor (pack-intro pb 20px
-     + escena-motor pt 8px, 36px) sumaban el resto. Solo mobile, desktop (1440) intacto. IDs
-     específicos (#despiece, #dp-bar) para no tocar #escena-motor, que ya venía ajustado desde
-     AZ3/AZ4 y no necesitaba más recorte. */
-  @media(max-width:820px){
-    #despiece{padding:20px 0 20px}
-    .dp-stage{margin-top:12px}
-    #dp-bar{margin-top:10px}
-    #despiece .dp-piezas{margin-top:8px}
-  }
-  /* ESCENAS scroll-scrub chicas (motor/carburador/freno), mismo mecanismo que .dp-stage: sin caja, flota sobre el fondo */
-  /* ORDEN AZ3 (Esteban): pegar el motor al párrafo que lo presenta. Antes, el padding-bottom
-     genérico de section{} (66px) de la sección previa (".pack-intro") sumado al padding-top
-     de .dp-mini (50px) dejaba ~124px de hueco vacío arriba del motor; .pack-intro se aparta
-     con su propia clase para no tocar el padding de todas las demás <section> del sitio. */
-  .pack-intro{padding-bottom:20px}
-  /* ORDEN AZ6: hueco lead(pack-intro)->canvas motor, mobile. Ver nota AZ6 arriba. */
-  @media(max-width:820px){.pack-intro{padding-bottom:8px}}
-  .dp-mini{padding:8px 0 10px;overflow:visible}
-  #escena-motor{padding-bottom:16px}
-  /* ORDEN AZ4 (Esteban): el hueco chips del motor -> nota .fx-note había subido a 114px
-     (32px de #escena-motor + 66px del padding-top genérico de section{} + 16px de margin-top
-     de .fx-note). Bajado a #escena-motor pb:16px + esta sección con su propio padding-top
-     chico, sin tocar section{} genérico ni el padding-bottom de esta misma sección. */
-  .post-despiece{padding-top:12px}
-  /* dp-scrub: carril del carril sticky. ORDEN AZ1 (Esteban): es landing de venta rápida,
-     el usuario debe bajar rápido — bajado de 170vh a 110vh y el canvas de 78vh a 55vh/45vh
-     (mobile). tick() mide el progreso 0→1 sobre ESTE carril de forma relativa (stickyTopPx
-     - tr.top)/range, así que sigue abriéndose al 95-100% del carril igual que en AY9, solo
-     que ahora en menos px de scroll. Antes de 170vh venía de 270vh (ver historial abajo). */
-  .dp-scrub{position:relative;height:110vh}
-  .dp-stage-mini{position:sticky;top:10vh;text-align:center;margin:0 auto}
-  .dp-stage-mini canvas{display:inline-block;max-width:100%;max-height:55vh;width:auto;height:auto}
-  @media(prefers-reduced-motion:reduce){.dp-scrub{height:auto}.dp-stage-mini{position:relative;top:0}}
-  /* ORDEN AZ2 (Esteban): el motor deja el pin/sticky y el carril alto .dp-scrub — ya no
-     comparte el mecanismo "pegajoso" de las otras 4 escenas chicas (que siguen comentadas
-     tal cual arriba, para si algún día se reactivan con su .dp-scrub intacto). El motor
-     ahora fluye a la altura natural del stage, igual que la moto grande (#despiece): se
-     abre mientras se le pasa por encima, sin quedarse pegado ni frenar el scroll. Por eso
-     se pisa SOLO el position/top por id, nada de lo demás de .dp-stage-mini (centrado,
-     max-height) cambia. */
-  #scr-motor-stage{position:relative;top:0}
-  /* GALERÍA con video local */
-  .fx video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
-  .fx{cursor:default}
-  /* PAGOS + AVISO */
-  .pay-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:22px}
-  .pay-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-family:var(--disp);font-size:.72rem;font-weight:700;color:var(--mut)}
-  .aviso{margin-top:18px;padding:11px 14px;border:1px dashed var(--blue);border-radius:12px;font-size:.8rem;color:var(--mut)}
-  .entrega{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
-  @media(max-width:820px){.entrega{grid-template-columns:1fr}}
-  /* ORDEN AZ1: va DESPUÉS de la regla base .dp-stage-mini canvas (línea ~320) a propósito
-     — misma especificidad, así que el orden en el cascade decide, y puesta ANTES (como
-     estaba) la pisaba la regla base de 55vh y el mobile nunca bajaba de 55vh */
-  @media(max-width:820px){.dp-stage-mini canvas{max-height:45vh}}
-  /* ORDEN AZ7 (Esteban): 3 huecos negros en móvil, medidos con Playwright. Todos nacían de
-     sumar el padding genérico de section{} (66px) de dos secciones consecutivas, sin tocar
-     ninguna animación ni el fix AZ5. Solo mobile, desktop (1440) queda con su aire normal.
-     1) chips moto grande -> eyebrow "Empieza hoy": #despiece pb (20, ya AZ6) + #comprar pt
-        (66 genérico) = 86px -> #comprar pt 8px = 28px.
-     2) borde tarjeta precio -> eyebrow "Así es el contenido": #comprar pb (66) + .pack-intro
-        pt (66) = 132px -> #comprar pb 16px + .pack-intro pt 16px = 32px.
-     3) nota fx-note -> eyebrow "Contenido completo": .post-despiece pb (66) + sección
-        siguiente pt (66) = 132px -> .post-despiece pb 16px + #contenido-completo pt 16px = 32px.
-     ORDEN AZ8 (Esteban): "mucho mejor pero sepáralos un poco, solo un poco" — los 3 huecos
-     de AZ7 se abren apenas en móvil, nada más. Solo mobile, desktop (1440) sin cambios.
-     1) 28px -> #comprar pt 8px->24px = 44px.
-     2) 32px -> #comprar pb 16px->24px + .pack-intro pt 16px->24px = 48px.
-     3) 32px -> .post-despiece pb 16px->24px + #contenido-completo pt 16px->24px = 48px. */
-  @media(max-width:820px){
-    #comprar{padding:24px 0 24px}
-    .pack-intro{padding-top:24px}
-    .post-despiece{padding-bottom:24px}
-    #contenido-completo{padding-top:24px}
-  }
-</style>
-<!-- Meta Pixel — dataset UTEC - Motos (29341735888765973). Calcado del molde de
-     the-gamebox.com (CU_ATRIB/CU_TRACK/guarda de PIXEL/helper con try-catch).
-     REGLA DEL MOLDE: medir NUNCA frena la entrega — si fbq no existe o tira, el
-     boton sigue funcionando. Por eso cada disparo va envuelto.
-     ⛔ Purchase NO se dispara aca: lo manda el SERVIDOR con value/currency tal cual
-        de Stripe (event_id = purchase_<session_id>). El Purchase de navegador con
-        moneda clavada es el bug conocido del /ir/ de gamebox (Meta 29 vs caja 19). -->
+<style>:root{--bg:#000;--panel:#101012;--panel2:#17171a;--line:#28282d;--tx:#ffffff;--mut:#9a9aa3;--dim:#6e6e77;--red:#E60012;--red-tx:#FF2A3C;--blue:#3B72C8;--radius:16px;--max:1080px;--disp:"Inter Tight","Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;--sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}.wrap{max-width:var(--max);margin:0 auto;padding:0 20px}h1,h2,h3{font-family:var(--disp);font-weight:900;letter-spacing:-.035em;line-height:1.05}a{color:inherit;text-decoration:none}::selection{background:#fff;color:#000}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#000;font-family:var(--disp);font-weight:800;letter-spacing:-.01em;font-size:1.05rem;padding:16px 36px;border-radius:999px;border:none;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 8px 26px -6px rgba(255,255,255,.5),0 0 54px -8px rgba(255,255,255,.4)}.btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px -6px rgba(255,255,255,.62),0 0 76px -6px rgba(255,255,255,.55)}.btn.big{font-size:1.2rem;padding:20px 46px}.btn.ghost{background:0 0;color:#fff;border:1.5px solid #3a3a40;box-shadow:none}.btn.ghost:hover{border-color:#fff;box-shadow:none}#btn-hero,#btn-pago,.buybar .btn{background:var(--red);color:#fff;box-shadow:0 0 0 1px rgba(230,0,18,.5),0 8px 26px -6px rgba(230,0,18,.85),0 0 54px -6px rgba(230,0,18,.6)}#btn-hero:hover,#btn-pago:hover,.buybar .btn:hover{box-shadow:0 0 0 1px rgba(255,74,86,.7),0 14px 34px -6px rgba(230,0,18,1),0 0 76px -4px rgba(230,0,18,.78)}.logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:900;font-size:1.18rem;letter-spacing:-.04em}.logo .mark{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}.logo .mark img{width:19px;height:19px;display:block}.logo .sub{font-weight:700;font-size:.72rem;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;margin-left:2px;align-self:flex-end;padding-bottom:2px}nav{--pr:#FA1319;position:sticky;top:0;z-index:50;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);border-bottom:none}nav::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;pointer-events:none;background:var(--pr)}nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;height:96px}nav .logo{gap:10px}nav .logo img{display:block;height:auto}nav .btn{background:var(--red);color:#fff;border:none;border-radius:999px;padding:12px 24px;font-family:var(--disp);font-weight:800;font-size:.95rem;letter-spacing:-.01em;text-transform:none;white-space:nowrap;box-shadow:0 0 0 1px rgba(230,0,18,.5),0 8px 26px -6px rgba(230,0,18,.85),0 0 54px -6px rgba(230,0,18,.6);transition:transform .15s ease,box-shadow .15s ease}nav .btn:hover{background:var(--red);color:#fff;transform:translateY(-2px);box-shadow:0 0 0 1px rgba(255,74,86,.7),0 14px 34px -6px rgba(230,0,18,1),0 0 76px -4px rgba(230,0,18,.78)}nav .logo img{width:252px}nav .wrap{height:106px}nav .wrap{padding-left:26px;padding-right:26px}@media(max-width:820px){nav .wrap{height:98px;gap:18px}nav .logo img{width:min(222px,41vw)}nav .btn{padding:14px 24px;font-size:1rem;letter-spacing:-.01em}}@media(max-width:560px){nav .wrap{height:92px;gap:14px;justify-content:space-between}nav .logo img{width:min(166px,37vw)}nav .logo{gap:8px}nav .btn{padding:13px 20px;font-size:.92rem;letter-spacing:-.01em}}@media(max-width:380px){nav .logo img{width:min(142px,32vw)}nav .logo{gap:6px}nav .btn{padding:12px 16px;font-size:.85rem;letter-spacing:-.01em}}header{position:relative;padding:74px 0 60px;background:radial-gradient(55% 55% at 82% 32%,rgba(230,0,18,.14),transparent 70%),radial-gradient(85% 60% at 50% 0,rgba(255,255,255,.07),transparent 70%)}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;column-gap:44px;row-gap:0;align-items:center;grid-template-areas:"pill device" "h1 device" "sub device" "chips device" "cta device" "note device"}.hero-grid>.pill{grid-area:pill}.hero-grid>h1{grid-area:h1}.hero-grid>p.sub{grid-area:sub}.hero-grid>.cta-row{grid-area:cta}.hero-grid>.cta-note{grid-area:note}.hero-grid>.trust-row{grid-area:chips}.hero-grid>.device{grid-area:device}.pill{display:inline-flex;gap:10px;align-items:center;font-size:.8rem;font-weight:700;color:#fff;background:#17171a;border:1px solid var(--blue);padding:7px 16px;border-radius:999px;margin-bottom:22px;letter-spacing:.01em}.pill b{color:#fff}header h1{font-size:clamp(2.2rem,6vw,3.8rem);margin-bottom:18px}header h1 .cut{position:relative;display:inline-block}header h1 .cut::after{content:"";position:absolute;left:0;right:0;bottom:.06em;height:.14em;background:var(--red);transform:skewX(-18deg)}header p.sub{font-size:clamp(1.05rem,2.4vw,1.28rem);color:var(--mut);max-width:600px;margin:0 0 30px}header p.sub b{color:#fff}.cta-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.cta-note{color:var(--dim);font-size:.85rem;margin-top:14px}.trust-row{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}#comprar .trust-row{justify-content:center;gap:8px;margin-top:10px}#comprar .trust-chip{font-size:.74rem;font-weight:600;gap:6px;padding:6px 11px}.trust-chip .e{display:inline-flex;line-height:1}.trust-chip{display:inline-flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:700;font-size:.82rem;color:#fff;background:#141416;border:1px solid var(--line);border-radius:999px;padding:8px 14px}.device{position:relative;width:262px;justify-self:center;filter:drop-shadow(0 34px 80px rgba(255,255,255,.14))}.device::before{content:"";position:absolute;inset:-36px;z-index:-1;border-radius:50%;background:radial-gradient(60% 60% at 50% 46%,rgba(230,0,18,.38),transparent 72%);filter:blur(4px);pointer-events:none}.phone{background:#0a0a0c;border:2px solid #2e2e34;border-radius:42px;padding:11px;position:relative}.phone::before{content:"";position:absolute;top:14px;left:50%;transform:translateX(-50%);width:80px;height:6px;border-radius:99px;background:#1c1c21;z-index:3}.screen{border-radius:32px;overflow:hidden;background:#000;border:1px solid #1e1e24}.pv{position:relative;overflow:hidden;aspect-ratio:9/12;background:radial-gradient(120% 75% at 50% 22%,rgba(255,255,255,.16),transparent 62%),linear-gradient(165deg,#1e1e24,#060608);display:flex;align-items:center;justify-content:center}.pv .yt-hero{position:absolute;top:50%;left:50%;width:102%;height:136%;transform:translate(-50%,-50%);border:0;pointer-events:none;z-index:1}.pv .pv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(.85)}.pv .tag{position:absolute;z-index:2;top:12px;left:12px;font-size:.6rem;font-weight:800;color:#000;background:#fff;padding:4px 10px;border-radius:99px}.pv .rec{position:absolute;z-index:2;top:12px;right:12px;font-size:.58rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px}.pv .rec::before{content:"";width:7px;height:7px;border-radius:50%;background:#ff4d5e;box-shadow:0 0 8px #ff4d5e}.pv .play{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.16);backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center}.pv .play::after{content:"";border-left:14px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}.tl{background:#0b0b0e;padding:10px 9px}.tl .thumbs{display:flex;gap:6px}.tl .thumb{position:relative;flex:1;height:34px;border-radius:7px;background-size:cover;background-position:center;overflow:hidden;opacity:.4;filter:grayscale(.4);animation:dvThumb 9s infinite}.tl .thumb .fill{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--red);animation:dvFill 9s infinite}.tl .t1{animation-delay:0s}.tl .t1 .fill{animation-delay:0s}.tl .t2{animation-delay:-3s}.tl .t2 .fill{animation-delay:-3s}.tl .t3{animation-delay:-6s}.tl .t3 .fill{animation-delay:-6s}.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:52px auto 0;max-width:480px}.badge{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 12px;text-align:center}.badge .n{font-family:var(--disp);font-size:clamp(1.6rem,4vw,2.3rem);font-weight:900;line-height:1;letter-spacing:-.03em;color:var(--red-tx)}.badge .l{color:var(--mut);font-size:.82rem;margin-top:7px}section{padding:66px 0}.eyebrow{color:var(--red-tx);font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px}h2.title{font-size:clamp(1.8rem,4.5vw,2.7rem);margin-bottom:14px}.lead{color:var(--mut);font-size:1.08rem;max-width:640px;margin-bottom:8px}.lead b{color:#fff}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:border-color .2s}.card:hover{border-color:#4a4a52}.card .ic{font-size:1.6rem;margin-bottom:12px}.card h3{font-size:1.15rem;margin-bottom:8px;letter-spacing:-.02em}.card p{color:var(--mut);font-size:.95rem}.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:36px}.gallery-big{display:flex;flex-direction:column;gap:28px;margin-top:36px}.fx{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:1px solid var(--line);display:flex;align-items:flex-end;padding:14px;isolation:isolate;transition:transform .18s ease,border-color .18s}.gallery-big .fx{padding:22px}.gallery-big .fx span{font-size:1.3rem}.gallery-big .fx-labels li{font-size:.9rem}.fx .yt-live{position:absolute;top:50%;left:50%;width:101%;height:135%;transform:translate(-50%,-50%);border:0;pointer-events:none;z-index:-1}.fx .fx-th{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}.fx::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--g)}.fx::after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(90% 60% at 30% 18%,rgba(255,255,255,.2),transparent 55%),linear-gradient(180deg,transparent 30%,rgba(0,0,0,.78))}.fx .ply{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center}.fx .ply::after{content:"";border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px}.fx span{font-family:var(--disp);font-weight:800;font-size:.95rem;line-height:1.15;letter-spacing:-.01em;text-shadow:0 2px 10px rgba(0,0,0,.7);z-index:1}.fx.g1{--g:linear-gradient(150deg,#f2f2f5,#3a3a42)}.fx.g2{--g:linear-gradient(150deg,#c9c9d1,#26262d)}.fx.g3{--g:linear-gradient(150deg,#9d9da6,#1b1b21)}.fx.g4{--g:linear-gradient(150deg,#84848d,#141419)}.fx.g5{--g:linear-gradient(150deg,#6b6b74,#101014)}.fx.g6{--g:linear-gradient(150deg,#55555e,#0c0c10)}.fx.g7{--g:linear-gradient(150deg,#41414a,#09090c)}.fx.g8{--g:linear-gradient(150deg,#2f2f37,#060608)}.fx-note{color:var(--dim);font-size:.85rem;margin-top:16px}.fx-pack{display:block}.fx-pack>span{position:absolute;left:13px;top:12px;z-index:3}.fx-labels{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-end;padding:13px 12px;background:linear-gradient(180deg,transparent 32%,rgba(0,0,0,.94) 66%);opacity:0;transition:opacity .55s ease;pointer-events:none}.fx-labels.show{opacity:1}.fx-labels ul{list-style:none;columns:2;column-gap:10px;width:100%}.fx-labels li{font-family:var(--sans);font-weight:700;font-size:.72rem;line-height:1.6;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.95);break-inside:avoid}@media(min-width:768px){.gallery-big{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start}.gallery-big .fx{aspect-ratio:9/16;max-height:80vh;width:100%;height:auto}.gallery-big .fx .fx-th,.gallery-big .fx video{object-fit:contain}}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:38px}.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px}.step .num{width:38px;height:38px;border-radius:50%;background:#fff;color:#000;font-family:var(--disp);font-weight:900;display:flex;align-items:center;justify-content:center;margin-bottom:16px}.step h3{font-size:1.1rem;margin-bottom:8px}.step p{color:var(--mut);font-size:.94rem}.acc{margin-top:34px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel)}details{border-bottom:1px solid var(--line)}details:last-child{border-bottom:none}summary{cursor:pointer;list-style:none;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:1.03rem;gap:14px}summary::-webkit-details-marker{display:none}summary .meta{color:var(--mut);font-weight:600;font-size:.85rem;flex-shrink:0}summary::after{content:"+";color:#fff;font-size:1.5rem;font-weight:300;flex-shrink:0}details[open] summary::after{content:"−"}.acc-body{padding:0 24px 22px;color:var(--mut);font-size:.95rem}.acc-body ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}.acc-body li{padding-left:18px;position:relative}.acc-body li::before{content:"›";position:absolute;left:0;color:#fff}#contenido-completo .acc summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;column-gap:14px;row-gap:2px}#contenido-completo .acc summary .nb{grid-area:1/1;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:#17171a;border:1px solid var(--line);border-radius:10px;font-family:var(--disp);font-weight:900;font-size:1rem;color:#fff}#contenido-completo .acc summary .tt{grid-area:1/1;min-width:0}#contenido-completo .acc summary .tt .em{display:inline-block;width:22px;margin-right:10px}#contenido-completo .acc summary .meta{grid-area:1/2}#contenido-completo .acc summary::after{grid-area:1/3}@media(max-width:700px){#contenido-completo .acc summary{grid-template-columns:minmax(0,1fr) auto}#contenido-completo .acc summary .nb{grid-area:1/1/span 2/2;align-self:center}#contenido-completo .acc summary .meta{grid-area:2/1;text-align:left;flex-shrink:1}#contenido-completo .acc summary::after{grid-area:1/2/span 2/3;align-self:center}}.band{position:relative;min-height:360px;display:flex;align-items:center;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.band img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:grayscale(.25) contrast(1.05)}.band::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#000 8%,rgba(0,0,0,.74) 44%,rgba(0,0,0,.22) 100%)}.band .wrap{padding:62px 20px}.band h2{font-size:clamp(1.6rem,4.2vw,2.5rem);max-width:600px;margin-bottom:12px}.band p{color:#d4d4d8;max-width:500px;font-size:1.05rem}.showcase{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:8px}.showcase .shot{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);aspect-ratio:3/2;box-shadow:0 24px 60px -24px rgba(0,0,0,.9)}.showcase .shot img{width:100%;height:100%;object-fit:cover;display:block}.sc-list{list-style:none;margin-top:18px;display:grid;gap:10px}.sc-list li{padding-left:26px;position:relative;color:var(--mut)}.sc-list li::before{content:"✓";position:absolute;left:0;color:#fff;font-weight:900}.guar{background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:24px;padding:44px;text-align:center;max-width:760px;margin:0 auto}.guar .shield{font-size:3rem;margin-bottom:12px}.price-card{background:linear-gradient(160deg,var(--panel2),#000);border:1.5px solid #fff;border-radius:24px;padding:46px 34px;text-align:center;max-width:520px;margin:38px auto 0;box-shadow:0 0 80px -24px rgba(255,255,255,.45)}.price-label{color:var(--mut);font-size:.9rem}.ancla{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 2px}.ancla s{color:var(--dim);font-family:var(--disp);font-weight:400;font-size:1.35rem;text-decoration-thickness:2px}.ancla .off{background:#fff;color:#000;font-family:var(--disp);font-weight:900;font-size:.9rem;letter-spacing:-.01em;padding:5px 11px;border-radius:999px;white-space:nowrap}.reloj{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#1b0f11;border:1px solid var(--red-tx);border-radius:14px;padding:12px 16px;margin:16px auto 22px;max-width:420px}.reloj .rl{display:flex;align-items:center;gap:7px;color:var(--red-tx);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em}.reloj .pt{width:9px;height:9px;border-radius:50%;background:var(--red-tx);flex-shrink:0;animation:ltd 1s steps(1,end) infinite}@keyframes ltd{0%,50%{opacity:1}100%,51%{opacity:.18}}@media(prefers-reduced-motion:reduce){.reloj .pt{animation:none}}.reloj b{font-family:var(--disp);font-weight:900;font-size:2.6rem;line-height:1;color:var(--red-tx);font-variant-numeric:tabular-nums;letter-spacing:.01em}.price-now{font-family:var(--disp);font-size:3.6rem;font-weight:900;line-height:1;margin:6px 0 4px;letter-spacing:-.04em}.price-per{display:inline-block;background:#17171a;border:1px solid var(--line);border-radius:999px;padding:6px 16px;font-size:.85rem;font-weight:700;color:var(--mut);margin-top:12px}.price-per b{color:#fff}.price-list{list-style:none;text-align:left;margin:26px 0;display:grid;gap:9px}.price-list li{padding-left:30px;position:relative;color:var(--tx)}.price-list li .ic{position:absolute;left:0;top:0;width:22px;text-align:center;font-style:normal;line-height:inherit;color:var(--red-tx);font-weight:900}.price-card .btn{width:100%}@media(max-width:560px){.price-card{padding:34px 18px}.price-list li{padding-left:26px}#btn-pago{font-size:1rem;padding:18px 16px;white-space:nowrap}}.pl-head{display:flex;align-items:center;gap:12px;margin:28px 0 0;text-align:left;color:var(--mut);font-family:var(--disp);font-weight:800;font-size:.74rem;letter-spacing:.16em;text-transform:uppercase}.pl-head::after{content:"";flex:1;height:1px;background:var(--line)}.price-list{margin:12px 0 26px;gap:0;border-top:1px solid var(--line)}.price-list li{position:relative;padding:11px 2px 11px 34px;border-bottom:1px solid var(--line)}.price-list li .ic{position:absolute;left:0;top:10px;width:21px;height:21px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:rgba(230,0,18,.13);border:1px solid rgba(230,0,18,.4);color:var(--red-tx);font-size:.72rem;font-weight:900;line-height:1}@media(max-width:560px){.price-list li{padding-left:32px}}footer{border-top:1px solid var(--line);padding:40px 0 110px;text-align:center;color:var(--mut);font-size:.85rem}.disc{color:#5c5c64;font-size:.75rem;max-width:720px;margin:16px auto 0;line-height:1.5}.buybar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;align-items:center;justify-content:space-between;gap:12px;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}.buybar .p{font-family:var(--disp);font-weight:900;font-size:1.25rem;letter-spacing:-.02em;line-height:1.1}.buybar .p small{display:block;font-family:var(--sans);font-weight:600;font-size:.68rem;color:var(--mut);letter-spacing:.02em}.buybar .btn{padding:12px 22px;font-size:.95rem;flex-shrink:0}.buybar{transform:translateY(0);opacity:1;will-change:transform,opacity;contain:layout;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s linear}.buybar.oculta{transform:translateY(110%);opacity:0;pointer-events:none;visibility:hidden;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s linear,visibility 0s linear .24s}.buybar:not(.oculta){visibility:visible;transition:transform .22s cubic-bezier(.22,.61,.36,1),opacity .18s linear,visibility 0s}@media(prefers-reduced-motion:reduce){.buybar{transition:none}}.bumps{margin:2px 0 24px;display:grid;gap:10px;text-align:left}.bump{display:flex;align-items:center;gap:12px;background:#101012;border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer;transition:border-color .15s}.bump:hover{border-color:#5a5a63}.bump.on{border-color:#fff}.bump input{display:none}.bump .bx{width:22px;height:22px;border-radius:6px;border:1.5px solid #4a4a52;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#000;transition:.15s}.bump input:checked~.bx{background:#fff;border-color:#fff}.bump input:checked~.bx::after{content:"\2713"}.bump .bt{flex:1;font-size:.92rem;line-height:1.3}.bump .bt small{display:block;color:var(--mut);font-weight:500;font-size:.8rem}.bump .bp{font-family:var(--disp);font-weight:900;font-size:1.05rem}.bump-nota{font-size:.82rem;color:var(--mut);text-align:center;background:#17171a;border:1px dashed #3a3a40;border-radius:10px;padding:8px 12px}.bump-nota b{color:#fff}.bumps{display:none!important}@media(max-width:820px){.grid,.steps{grid-template-columns:1fr}.acc-body ul{grid-template-columns:1fr}.hero-grid{grid-template-columns:1fr;text-align:center;row-gap:0;grid-template-areas:"pill" "h1" "sub" "chips" "device" "cta"}.pill{margin-left:auto;margin-right:auto}header p.sub{margin-left:auto;margin-right:auto}.cta-row{justify-content:center}.cta-note{display:none}#comprar .cta-note{display:block;text-align:center}header{padding-top:38px}.pill{margin-bottom:30px}.trust-row{justify-content:center}.device{width:225px;margin:36px auto}.gallery{grid-template-columns:repeat(2,1fr);gap:8px}.fx{padding:9px;border-radius:11px}.fx span{font-size:.68rem}.fx .ply{display:none}.fx-labels li{font-size:.66rem;line-height:1.5}.showcase{grid-template-columns:1fr}.band .wrap{padding:48px 20px}.buybar{display:flex}}@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter.woff2) format('woff2')}@font-face{font-family:'Inter Tight';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/inter-tight.woff2) format('woff2')}.logo .mark{background:#000;border:1px solid #2e2e34}.logo .mark img{width:30px;height:30px}.pv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}.pv::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.35),transparent 30%,transparent 70%,rgba(0,0,0,.55))}.pv .cap{position:absolute;z-index:2;left:12px;right:12px;bottom:12px;font-family:var(--disp);font-weight:800;font-size:.8rem;line-height:1.2;text-align:left}.pv .cap small{display:block;font-family:var(--sans);font-weight:600;font-size:.62rem;color:#c9c9d1;margin-top:3px}.pv .slide{position:absolute;inset:0;opacity:0;animation:dvSlide 9s infinite}.pv>video.hero-uno{z-index:0}.device.dv-wait .pv .slide,.device.dv-wait .tl .thumb,.device.dv-wait .tl .thumb .fill{animation-play-state:paused}.pv .s1{animation-delay:0s}.pv .s2{animation-delay:-3s}.pv .s3{animation-delay:-6s}@keyframes dvSlide{0%{opacity:0}3%,30%{opacity:1}100%,33%{opacity:0}}@keyframes dvThumb{0%{opacity:.4;filter:grayscale(.4)}3%,30%{opacity:1;filter:none}100%,33%{opacity:.4;filter:grayscale(.4)}}@keyframes dvFill{0%,3%{width:0}30%{width:100%}100%,30.1%{width:0}}@media(prefers-reduced-motion:reduce){.pv .slide,.tl .thumb,.tl .thumb .fill{animation:none}.pv .s1{opacity:1}.tl .t1{opacity:1;filter:none}}.marcas{padding:44px 0 6px}.marcas-lb{text-align:center;color:var(--mut);font-weight:800;font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:18px}.cinta{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);margin:12px 0}.cinta-track{display:flex;align-items:center;width:max-content;animation:marq 60s linear infinite;will-change:transform;transform:translate3d(0,0,0)}.cinta-rev .cinta-track{animation-name:marq-rev;animation-duration:66s}.cinta-grp{display:flex;align-items:center;gap:40px;padding-right:40px}.cinta-it{display:flex;align-items:center;height:24px;flex:0 0 auto}.cinta-track img{height:24px;width:auto;display:block;filter:brightness(0) invert(1);opacity:.62}.cinta-tx{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:.8rem;opacity:.62}@keyframes marq{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}@keyframes marq-rev{from{transform:translate3d(-50%,0,0)}to{transform:translate3d(0,0,0)}}@media(prefers-reduced-motion:reduce){.cinta-track{animation:none}}.dp{padding:70px 0 40px;text-align:center;overflow:hidden}.dp .lead{margin-left:auto;margin-right:auto}.dp-stage{position:relative;max-width:1080px;margin:26px auto 0}.dp-stage canvas{display:block;width:100%;height:auto;aspect-ratio:1280/732}.dp-bar{max-width:280px;height:3px;border-radius:99px;background:#1c1c21;margin:18px auto 0;overflow:hidden}.dp-bar i{display:block;height:100%;width:calc(var(--t,0)*100%);background:var(--red)}.dp-piezas{list-style:none;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px auto 0;max-width:640px;padding:0 20px}.dp-piezas li{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-family:var(--disp);font-weight:800;font-size:.8rem}@media(max-width:820px){.dp-stage{width:100%;margin-left:0;padding:0 4px}}@media(max-width:820px){#despiece{padding:20px 0 20px}.dp-stage{margin-top:12px}#dp-bar{margin-top:10px}#despiece .dp-piezas{margin-top:8px}}.pack-intro{padding-bottom:20px}@media(max-width:820px){.pack-intro{padding-bottom:8px}}.dp-mini{padding:8px 0 10px;overflow:visible}#escena-motor{padding-bottom:16px}.post-despiece{padding-top:12px}.dp-scrub{position:relative;height:110vh}.dp-stage-mini{position:sticky;top:10vh;text-align:center;margin:0 auto}.dp-stage-mini canvas{display:inline-block;max-width:100%;max-height:55vh;width:auto;height:auto}@media(prefers-reduced-motion:reduce){.dp-scrub{height:auto}.dp-stage-mini{position:relative;top:0}}#scr-motor-stage{position:relative;top:0}.fx video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}.fx{cursor:default}.pay-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:22px}.pay-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-family:var(--disp);font-size:.72rem;font-weight:700;color:var(--mut)}.aviso{margin-top:18px;padding:11px 14px;border:1px dashed var(--blue);border-radius:12px;font-size:.8rem;color:var(--mut)}.entrega{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}@media(max-width:820px){.entrega{grid-template-columns:1fr}}@media(max-width:820px){.dp-stage-mini canvas{max-height:45vh}}@media(max-width:820px){#comprar{padding:24px 0 24px}.pack-intro{padding-top:24px}.post-despiece{padding-bottom:24px}#contenido-completo{padding-top:24px}}</style>
 </head>
 <body>
-
 <nav>
-  <div class="wrap">
-    <div class="logo"><img src="img/placa-nav-sinmarco-852.png" alt="MOTO DATA · Workshop Manuals" width="852" height="156"></div>
-    <a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn" data-buy="1">ACCEDE AHORA</a>
-  </div>
+<div class="wrap">
+<div class="logo"><img src="img/placa-nav-sinmarco-852.png" alt="MOTO DATA · Workshop Manuals" width="852" height="156"></div>
+<a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn" data-buy="1">ACCEDE AHORA</a>
+</div>
 </nav>
-
 <header>
-  <div class="wrap">
-    <div class="hero-grid">
-      <div class="pill">🏍️ <b>Celular + PC</b></div>
-      <h1>Más de 1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
-      <p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
-      <div class="cta-row">
-        <a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn big" id="btn-hero" data-buy="1">ACCEDE AHORA →</a>
-      </div>
-      <div class="cta-note">Pago único de <span id="hero-precio">US$12.99</span> (antes <span id="hero-antes">US$64.95</span>) · Acceso inmediato · Es tuyo para siempre</div>
-      <div class="trust-row">
-        <span class="trust-chip"><span class="e">✅</span>Pago único</span>
-        <span class="trust-chip"><span class="e">⚡</span>Acceso inmediato</span>
-        <span class="trust-chip"><span class="e">🛡️</span>Garantía 3 días</span>
-        <span class="trust-chip"><span class="e">🏍️</span>+3.400 personas ya lo compraron</span>
-      </div>
-
-      <div class="device" aria-hidden="true">
-        <div class="phone">
-          <div class="screen">
-            <div class="pv">
-              <!-- ORDEN de Esteban 2026-10-13: "solo deja este video en el hero de arriba
-                   [...] no dejemos ya los 3 que es muy mal optimizado que se ve". Queda UN
-                   clip: vid/g1.mp4 (arbol de levas, el archivo que mando, byte a byte).
-                   Salieron el ciclo de 3 segmentos (.slide s1/s2/s3) y la franja de thumbs
-                   (.tl): su rotulo y su pie quedan fijos como hijos directos de .pv, que ya
-                   son position:absolute -> CERO reglas CSS nuevas. hero.mp4 (248 KB) se borro.
-                   Hero: 247.865 B -> 124.957 B (-49,6%) y 2 peticiones .webp menos. -->
-              <video class="hero-uno" data-src="vid/g1.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="none"></video>
-              <span class="tag">Árbol de levas</span>
-              <div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
-              <span class="rec">Paso a paso</span>
-            </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="marcas">
-    <p class="marcas-lb">Manuales de más de 90 marcas de motos</p>
-    <div class="cinta"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img data-src="img/logos/honda.svg" loading="eager" alt="Honda" width="33" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/suzuki.svg" loading="eager" alt="Suzuki" width="48" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bajaj.svg" loading="eager" alt="Bajaj" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/hero.svg" loading="eager" alt="Hero" width="99" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/akt.webp" loading="eager" alt="AKT" width="120" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/cfmoto.svg" loading="eager" alt="CFMoto" width="162" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bmw.svg" loading="eager" alt="BMW" width="32" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/harley-davidson.svg" loading="eager" alt="Harley-Davidson" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/aprilia.svg" loading="eager" alt="Aprilia" width="72" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bera.png" loading="eager" alt="Bera" width="53" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/husqvarna.svg" loading="eager" alt="Husqvarna" width="133" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/indian.svg" loading="eager" alt="Indian" width="71" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/keeway.svg" loading="eager" alt="Keeway" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kymco.svg" loading="eager" alt="Kymco" width="145" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/loncin.png" loading="eager" alt="Loncin" width="152" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/moto-guzzi.svg" loading="eager" alt="Moto Guzzi" width="91" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/motomel.png" loading="eager" alt="Motomel" width="56" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img data-src="img/logos/honda.svg" loading="eager" alt="" width="33" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/suzuki.svg" loading="eager" alt="" width="48" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bajaj.svg" loading="eager" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/hero.svg" loading="eager" alt="" width="99" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/akt.webp" loading="eager" alt="" width="120" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/cfmoto.svg" loading="eager" alt="" width="162" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bmw.svg" loading="eager" alt="" width="32" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/harley-davidson.svg" loading="eager" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/aprilia.svg" loading="eager" alt="" width="72" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bera.png" loading="eager" alt="" width="53" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/husqvarna.svg" loading="eager" alt="" width="133" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/indian.svg" loading="eager" alt="" width="71" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/keeway.svg" loading="eager" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kymco.svg" loading="eager" alt="" width="145" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/loncin.png" loading="eager" alt="" width="152" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/moto-guzzi.svg" loading="eager" alt="" width="91" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/motomel.png" loading="eager" alt="" width="56" height="26" decoding="async"></span></span></div></div>
-    <div class="cinta cinta-rev"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img data-src="img/logos/yamaha.svg" loading="eager" alt="Yamaha" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kawasaki.svg" loading="eager" alt="Kawasaki" width="180" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/tvs.svg" loading="eager" alt="TVS" width="178" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ktm.svg" loading="eager" alt="KTM" width="103" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/italika.svg" loading="eager" alt="Italika" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vento.svg" loading="eager" alt="Vento" width="156" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/gilera.svg" loading="eager" alt="Gilera" width="22" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/sym.svg" loading="eager" alt="SYM" width="81" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vespa.svg" loading="eager" alt="Vespa" width="87" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ducati.svg" loading="eager" alt="Ducati" width="30" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/mv-agusta.svg" loading="eager" alt="MV Agusta" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/piaggio.svg" loading="eager" alt="Piaggio" width="23" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/royal-enfield.svg" loading="eager" alt="Royal Enfield" width="70" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/shineray.png" loading="eager" alt="Shineray" width="147" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/triumph.svg" loading="eager" alt="Triumph" width="95" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zanella.png" loading="eager" alt="Zanella" width="60" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zongshen.png" loading="eager" alt="Zongshen" width="37" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img data-src="img/logos/yamaha.svg" loading="eager" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kawasaki.svg" loading="eager" alt="" width="180" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/tvs.svg" loading="eager" alt="" width="178" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ktm.svg" loading="eager" alt="" width="103" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/italika.svg" loading="eager" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vento.svg" loading="eager" alt="" width="156" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/gilera.svg" loading="eager" alt="" width="22" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/sym.svg" loading="eager" alt="" width="81" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vespa.svg" loading="eager" alt="" width="87" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ducati.svg" loading="eager" alt="" width="30" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/mv-agusta.svg" loading="eager" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/piaggio.svg" loading="eager" alt="" width="23" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/royal-enfield.svg" loading="eager" alt="" width="70" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/shineray.png" loading="eager" alt="" width="147" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/triumph.svg" loading="eager" alt="" width="95" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zanella.png" loading="eager" alt="" width="60" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zongshen.png" loading="eager" alt="" width="37" height="26" decoding="async"></span></span></div></div>
-  </div>
-
-  <div class="wrap">
-    <div class="badges">
-      <div class="badge"><div class="n">+1.200</div><div class="l">manuales de taller</div></div>
-      <div class="badge"><div class="n">+90</div><div class="l">marcas de motos</div></div>
-      <div class="badge"><div class="n">+880</div><div class="l">modelos distintos</div></div>
-      <div class="badge"><div class="n">2T·4T</div><div class="l">motores cubiertos</div></div>
-    </div>
-  </div>
-</header>
-
-<!-- DESPIECE: la moto se abre mientras la pasas, sin quedarse pegada -->
-<section class="dp" id="despiece">
-  <div class="wrap">
-    <div class="eyebrow">Así se ve por dentro</div>
-    <h2 class="title">Tu moto, pieza por pieza</h2>
-    <p class="lead">Baja y mira cómo se abre: cada pieza, el orden de armado y el torque de cada tornillo.</p>
-  </div>
-  <div class="dp-stage" id="dp-stage">
-    <canvas id="dp-canvas" width="1280" height="732" role="img" aria-label="Una moto armada que se abre en despiece mientras bajas: motor, tanque, horquilla, chasis, cadena, escape, ruedas y embrague por separado."></canvas>
-  </div>
-  <div class="dp-bar" id="dp-bar" aria-hidden="true"><i></i></div>
-  <ul class="dp-piezas">
-    <li>Motor</li><li>Tanque</li><li>Horquilla</li><li>Chasis</li><li>Cadena</li><li>Escape</li><li>Ruedas</li><li>Embrague</li>
-  </ul>
-</section>
-
-<!-- PRECIO -->
-<section id="comprar">
-  <div class="wrap" style="text-align:center">
-    <div class="eyebrow">Llévatelo hoy</div>
-    <h2 class="title">Un solo pago. Acceso de por vida.</h2>
-    <div class="price-card">
-      <div class="price-label">Precio de hoy</div>
-      <div class="ancla"><s id="anc-lista">US$64.95</s><span class="off" id="anc-off">80% OFF</span></div>
-      <div class="price-now" id="precio-grande">US$12.99</div>
-      <div class="price-per">✅ pago único · <b>acceso inmediato</b></div>
-      <!-- ORDEN 13-oct (P6): el contador sube y queda APARTE, en bloque propio justo
-           debajo de "pago único · acceso de por vida" — antes iba despues de una lista
-           de 7 items y pasaba inadvertido. Nodo MOVIDO, no duplicado: el JS escribe en
-           #reloj-d y solo puede haber uno. REVERSA: devolver este div debajo del <ul>. -->
-      <div class="reloj" id="reloj"><span class="rl"><span class="pt" aria-hidden="true"></span>La oferta termina en</span><b id="reloj-d">--:--</b></div>
-      <!-- Lista de "Lo que recibes": un renglon por item (orden 13-oct, target low IQ). -->
-      <div class="pl-head">Lo que recibes</div>
-      <ul class="price-list">
-        <li><span class="ic">✓</span><b>+1.200 manuales</b> de taller</li>
-        <li><span class="ic">✓</span>De <b>más de 90 marcas</b></li>
-        <li><span class="ic">✓</span><b>+880 modelos</b> distintos</li>
-        <li><span class="ic">✓</span><b>Diagramas eléctricos</b></li>
-        <li><span class="ic">✓</span>Despiece, armado y torque</li>
-        <li><span class="ic">✓</span>Curso de mecánica <b>2T·4T</b></li>
-        <li><span class="ic">✓</span>Se abre sin internet</li>
-        <li><span class="ic">✓</span>Acceso inmediato al pagar</li>
-      </ul>
-      <a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn big" id="btn-pago" data-buy="1">ACCEDE AHORA · US$12.99 →</a>
-      <!-- ORDEN 13-oct (Esteban, foto de melamina): "pongamos mejor esto debajo del
-           accede ahora para que les de confianza". Mismo renglon y mismos 3 sellos
-           que la caja de melamina. El canal de WhatsApp NO se pierde: sigue vivo en
-           el acordeon "¿Sirve para mi moto?". REVERSA: devolver el texto largo. -->
-      <div class="cta-note">Pago seguro · Acceso inmediato al confirmar</div>
-      <div class="trust-row">
-        <span class="trust-chip"><span class="e">🔒</span>Pago cifrado con Stripe</span>
-        <span class="trust-chip"><span class="e">💳</span>Visa · Mastercard</span>
-        <span class="trust-chip"><span class="e">🛡️</span>Garantía 3 días</span>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- GARANTÍA -->
-<section style="background:var(--panel)">
-  <div class="wrap">
-    <div class="guar">
-      <div class="shield">🛡️</div>
-      <h2 class="title" style="margin-bottom:10px">Garantía de 3 días</h2>
-      <p class="lead" style="margin:0 auto">Tiempo real para revisar los manuales antes de decidir. Si en 3 días no es lo que esperabas, te devolvemos el 100% de tu dinero.</p>
-    </div>
-  </div>
-</section>
-
-<!-- QUÉ VAS A APRENDER -->
-<section class="pack-intro">
-  <div class="wrap">
-    <div class="eyebrow">Así es el contenido</div>
-    <h2 class="title">Lo que hay dentro del pack</h2>
-    <p class="lead">Baja y mira cada sistema abrirse pieza por pieza, con su nombre.</p>
-  </div>
-</section>
-
-<section class="dp dp-mini" id="escena-motor">
-  <div class="dp-stage-mini" id="scr-motor-stage">
-    <canvas id="scr-motor-canvas" width="784" height="1361" role="img" aria-label="Motor de motocicleta que se desarma pieza por pieza: tapa de válvulas, árbol de levas, culata, cilindro, pistón, biela, cigüeñal, embrague, magneto."></canvas>
-  </div>
-  <ul class="dp-piezas"><li>Motor</li><li>Tapa de válvulas</li><li>Árbol de levas</li><li>Culata</li><li>Cilindro</li><li>Pistón</li><li>Biela</li><li>Cigüeñal</li><li>Embrague</li><li>Magneto</li></ul>
-</section>
-
-<!-- ORDEN AY9 (Esteban): se queda SOLO el despiece del motor. Carburador/freno/embrague/
-     horquilla se OCULTAN (no se borran): quedan comentados para no pedir sus frames.
-     REVERSA: quitar el comentario y vuelven tal cual estaban.
-<section class="dp dp-mini" id="escena-carburador">
-  <div class="dp-scrub" id="scr-carburador-track"><div class="dp-stage-mini" id="scr-carburador-stage">
-    <canvas id="scr-carburador-canvas" width="720" height="1400" role="img" aria-label="Carburador de motocicleta que se desarma pieza por pieza: tapa, campana, aguja, chiclés, flotador, cuba."></canvas>
-  </div></div>
-  <ul class="dp-piezas"><li>Carburador</li><li>Tapa</li><li>Campana</li><li>Aguja</li><li>Chiclés</li><li>Flotador</li><li>Cuba</li></ul>
-</section>
-
-<section class="dp dp-mini" id="escena-freno">
-  <div class="dp-scrub" id="scr-freno-track"><div class="dp-stage-mini" id="scr-freno-stage">
-    <canvas id="scr-freno-canvas" width="1104" height="1400" role="img" aria-label="Sistema de freno de motocicleta que se desarma pieza por pieza: disco, caliper, pastillas, pistones, purgador."></canvas>
-  </div></div>
-  <ul class="dp-piezas"><li>Frenos</li><li>Disco</li><li>Caliper</li><li>Pastillas</li><li>Pistones</li><li>Purgador</li></ul>
-</section>
-
-<section class="dp dp-mini" id="escena-embrague">
-  <div class="dp-scrub" id="scr-embrague-track"><div class="dp-stage-mini" id="scr-embrague-stage">
-    <canvas id="scr-embrague-canvas" width="782" height="1400" role="img" aria-label="Embrague de motocicleta que se desarma pieza por pieza: campana, discos de fricción, platos de acero, plato de presión, muelles, tornillos."></canvas>
-  </div></div>
-  <ul class="dp-piezas"><li>Embrague</li><li>Campana</li><li>Discos</li><li>Platos</li><li>Muelles</li><li>Buje central</li><li>Tornillos</li></ul>
-</section>
-
-<section class="dp dp-mini" id="escena-horquilla">
-  <div class="dp-scrub" id="scr-horquilla-track"><div class="dp-stage-mini" id="scr-horquilla-stage">
-    <canvas id="scr-horquilla-canvas" width="176" height="1400" role="img" aria-label="Horquilla de motocicleta que se desarma pieza por pieza: tapón, resorte, barra, retén, buje, barral."></canvas>
-  </div></div>
-  <ul class="dp-piezas"><li>Horquilla</li><li>Tapón</li><li>Resorte</li><li>Barra</li><li>Retén</li><li>Buje</li><li>Barral</li></ul>
-</section>
--->
-
-
-<!-- CONTENIDO COMPLETO -->
-<section id="contenido-completo">
-  <div class="wrap">
-    <div class="eyebrow">Contenido completo</div>
-    <h2 class="title">Bloque por bloque, sin relleno</h2>
-    <p class="lead">Lo que ves es lo que hay.</p>
-    <div class="acc">
-      <details open>
-        <summary><span class="tt"><span class="em">📘</span>Manuales de taller por marca</span><span class="meta">más de 1.200 manuales · más de 90 marcas</span></summary>
-        <div class="acc-body"><p>Yamaha (381), Honda (159), Bajaj (130), Kawasaki (106), Suzuki (68), AKT (38), TVS (37), KTM (36), Kymco (26), SYM (23), Hero (23), Victory (20), Italika (19), BMW (15), CFMoto (14), Benelli (13), Harley-Davidson (13), Aprilia (12), Ducati (9) y muchas marcas más. El número entre paréntesis es cuántos manuales hay de esa marca, contados en la carpeta. Despiece, montaje y diagramas eléctricos.</p></div>
-      </details>
-      <details>
-        <summary><span class="tt"><span class="em">🎓</span>Curso de Mecánica 2T y 4T</span><span class="meta">incluido</span></summary>
-        <div class="acc-body"><p>Cómo funciona un motor de <b>2 tiempos</b> y uno de <b>4 tiempos</b>, en qué se parecen, en qué no, y qué se hace distinto al desarmarlos. Explicado desde cero.</p></div>
-      </details>
-      <details>
-        <summary><span class="tt"><span class="em">🎁</span>Incluido en el pack</span><span class="meta">sin costo extra</span></summary>
-        <div class="acc-body">
-          <ul>
-            <li>Curso Polarizado de Autos</li>
-            <li>Aire Acondicionado Automotriz</li><li>Mecánica para Bicicleta</li>
-          </ul>
-        </div>
-      </details>
-    </div>
-
-    <div class="entrega">
-      <div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p><span id="paso-precio">US$12.99</span>, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
-      <div class="step"><div class="num">2</div><h3>Recibes el acceso al instante</h3><p>Te llega el enlace a tu carpeta privada apenas se confirma el pago.</p></div>
-      <div class="step"><div class="num">3</div><h3>Buscas tu moto y la arreglas</h3><p>PDF por marca y modelo. Se abre en el celular, incluso sin internet.</p></div>
-    </div>
-  </div>
-</section>
-
-
-<!-- FAQ -->
-<section style="background:var(--panel)" id="faq">
-  <div class="wrap">
-    <div class="eyebrow">Preguntas frecuentes</div>
-    <h2 class="title">Lo que todos preguntan</h2>
-    <div class="acc">
-<details><summary><span>¿Sirve para mi moto?</span></summary><div class="acc-body">Son <b>más de 1.200 manuales</b> de <b>más de 90 marcas</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, TVS, KTM, Kymco, SYM, Hero, Victory, Italika, BMW, CFMoto, Benelli, Harley-Davidson, Aprilia, Ducati, Royal Enfield, Triumph, Can-Am, Keeway, Longjia, Vento, Tekken, Haojue, Husqvarna, Piaggio, Corven y muchas más. Escríbenos tu marca y modelo <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" data-soporte="1" style="color:inherit">por WhatsApp</a> y te confirmamos antes de que pagues.</div></details>
-  <details><summary><span>¿Necesito experiencia en mecánica?</span></summary><div class="acc-body">No. El manual te muestra cada pieza y el orden para desarmar y armar, paso a paso.</div></details>
-  <details><summary><span>¿Es un pago único?</span></summary><div class="acc-body">Sí. <b id="faq-precio">US$12.99</b> una sola vez, acceso de por vida y 3 días de garantía: si no te sirve, te devolvemos el dinero.</div></details>
-  <details><summary><span>¿Cómo recibo los manuales?</span></summary><div class="acc-body">Apenas pagas te llega el acceso. Son PDF que abres en el celular o el PC, y funcionan sin internet una vez descargados.</div></details>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="wrap">
-    <div class="logo" style="justify-content:center;margin-bottom:14px"><img src="img/logo-mark-512.png" alt="MOTO DATA" width="64" height="64" style="display:block;width:64px;height:64px" loading="lazy" decoding="async"></div>
-    <!-- Pie: solo el credito. El descargo de marcas (.disc) salio por orden del 13-oct. -->
-    <p>© 2026 MOTO DATA GLOBAL · Entrega digital inmediata.</p>
-  </div>
-</footer>
-
-<div class="buybar" id="buybar">
-  <div class="p"><span id="buybar-precio">US$12.99</span><small>pago único · acceso inmediato</small></div>
-  <a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn" data-buy="1">ACCEDE AHORA →</a>
+<div class="wrap">
+<div class="hero-grid">
+<div class="pill">🏍️ <b>Celular + PC</b></div>
+<h1>Más de 1.200 manuales de taller.<br>El de <span class="cut">tu moto</span> está adentro.</h1>
+<p class="sub">De <b>más de 90 marcas</b> y <b>más de 880 modelos</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki y muchas más. Con el <b>diagrama eléctrico</b>, el despiece y el torque de cada tornillo. Se abre en tu celular, incluso sin internet.</p>
+<div class="cta-row">
+<a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn big" id="btn-hero" data-buy="1">ACCEDE AHORA →</a>
+</div>
+<div class="cta-note">Pago único de <span id="hero-precio">US$12.99</span> (antes <span id="hero-antes">US$64.95</span>) · Acceso inmediato · Es tuyo para siempre</div>
+<div class="trust-row">
+<span class="trust-chip"><span class="e">✅</span>Pago único</span>
+<span class="trust-chip"><span class="e">⚡</span>Acceso inmediato</span>
+<span class="trust-chip"><span class="e">🛡️</span>Garantía 3 días</span>
+<span class="trust-chip"><span class="e">🏍️</span>+3.400 personas ya lo compraron</span>
+</div>
+<div class="device" aria-hidden="true">
+<div class="phone">
+<div class="screen">
+<div class="pv">
+<video class="hero-uno" data-src="vid/g1.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="none"></video>
+<span class="tag">Árbol de levas</span>
+<div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
+<span class="rec">Paso a paso</span>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 
-<script>
-/* BARRA FIJA DE COMPRA v3 — ORDEN DE ESTEBAN, 14-oct-2026: "esa barra tiene
-   muchos problemas". Los 5 defectos MEDIDOS de la v2 y lo que hace esta:
-
-   1) UMBRAL INSTANTANEO (MIN=6px): cualquier temblor de 7px hacia arriba mientras
-      bajabas la hacia aparecer, y al revés. Aqui el umbral es de RECORRIDO
-      ACUMULADO en un sentido (BAJA=28 / SUBE=18) y el contador se reinicia al
-      cambiar de sentido: un jiggle no alcanza nunca.
-   2) NO APARECIA AL PARAR: si bajabas y te quedabas quieto leyendo, no habia
-      barra hasta que subieras. Ahora, QUIETO ms sin scroll => se pone. Es lo que
-      mata la queja de "se demora en aparecer": ya no hay que subir para verla.
-   3) RELAYOUT = FALSO SCROLL: los reveal y las ilustraciones perezosas cambian
-      scrollY sin que el dedo se mueva, y eso disparaba conmutaciones solas. Un
-      salto mayor a SALTO px se trata como resincronizacion, no como direccion.
-   4) REBOTE DE iOS: el overscroll daba scrollY negativo o mayor al maximo y se
-      leia como cambio de sentido. Aqui y() va CLAMPEADA a [0, max].
-   5) UNA LECTURA POR FRAME: la v2 leia pageYOffset en cada evento de scroll (y
-      con mutaciones pendientes del observer eso fuerza layout sincrono = jank).
-      Aqui el evento solo encola un requestAnimationFrame.
-
-   Y el vidrio: escondida, la barra seguia siendo una capa con backdrop-filter
-   viva (opacity 0 pero pintada). El CSS le suma `visibility:hidden` con retardo
-   igual a la transicion: se desliza entera y recien ahi suelta la capa; al
-   volver, visibility vuelve sin retardo y no se pierde un frame.
-
-   Sin JS la barra queda PUESTA: un boton de mas, nunca de menos. */
-(function(){
-  var bar=document.getElementById('buybar');
-  if(!bar) return;
-  var TOPE=320;    /* px: arriba de esto manda el CTA del hero */
-  var BAJA=28;     /* px acumulados bajando para esconderla */
-  var SUBE=18;     /* px acumulados subiendo para ponerla (mas sensible: es lo que pide el dedo) */
-  var QUIETO=260;  /* ms sin scroll => se pone */
-  var SALTO=600;   /* px: brinco mayor = ancla o relayout, no dedo */
-  var PIE=60;      /* px del final de la pagina donde siempre se ve */
-  var visible=null, ant=0, acum=0, pend=false, t=0;
-
-  function max(){ var m=(document.documentElement.scrollHeight||0)-window.innerHeight; return m>0?m:0; }
-  function y(){
-    var v=window.pageYOffset||document.documentElement.scrollTop||0, m=max();
-    return v<0?0:(v>m?m:v);
-  }
-  function ver(v){ if(v===visible) return; visible=v; if(v) bar.classList.remove('oculta'); else bar.classList.add('oculta'); }
-  function paso(){
-    pend=false;
-    var h=y(), d=h-ant; ant=h;
-    if(d!==0){
-      if(d>SALTO||d<-SALTO) acum=0;
-      else if(acum===0||(d>0)===(acum>0)) acum+=d;
-      else acum=d;
-    }
-    if(h<TOPE){ ver(false); acum=0; return; }
-    if(h>=max()-PIE){ ver(true); acum=0; return; }
-    if(acum<=-SUBE){ ver(true); acum=0; }
-    else if(acum>=BAJA){ ver(false); acum=0; }
-  }
-  function alScroll(){
-    if(!pend){ pend=true; requestAnimationFrame(paso); }
-    clearTimeout(t);
-    t=setTimeout(function(){ acum=0; ant=y(); if(ant>=TOPE) ver(true); }, QUIETO);
-  }
-  ant=y(); ver(ant>=TOPE);
-  addEventListener('scroll',alScroll,{passive:true});
-  addEventListener('resize',function(){ ant=y(); acum=0; },{passive:true});
-})();
-
-/* precio + bonos */
-(function(){
-  /* ORDEN DE ESTEBAN 2026-10-12: el precio son US$12.99 con 80% de descuento, y el
-     canal de COMPRA pasa de WhatsApp al checkout de Stripe que ya existe y ya cobra
-     (price_1UPh53CkKktoiQEZYREwwEVF = 1299 usd, leido por API antes de publicar).
-     WhatsApp queda como SOPORTE, con su propio enlace al lado del boton.
-     - El ancla NO se inventa: sale de la aritmetica exacta de su propio 80%,
-       12.99 / 0.20 = 64.95. Medido en V8: Math.floor(100*(1-12.99/64.95)) === 80,
-       sin coma flotante sucia. Si alguien cambia PR y el ancla deja de dar el 80%,
-       pintarAncla publica el porcentaje REAL calculado, nunca el 80 de memoria.
-     - ⚠️ TRAMPA PAGADA: en COP el punto era separador de miles, y parseFloat del
-       precio viejo daba 15 en vez de quince mil. En USD el punto SI es decimal:
-       parseFloat('12.99') === 12.99 ⇒ sirve directo. Por eso
-       este bloque pasa a USD entero y el pixel deja de rasparle los no-digitos
-       (raspar '12.99' daba 1299 — mil veces el precio, y en la moneda equivocada). */
-  var LINKS={base:'https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419'};
-  var PR={base:'12.99'};
-  var ANTES={base:'64.95'};
-  /* ══ MONEDA LOCAL EN PANTALLA ═══════════════════════════════════════════
-     Molde de curso.melamina.pro portado tal cual (orden de Esteban 13-oct-2026:
-     "que cada vez que alguien entre se convierta a su moneda local").
-     COMO SE DETECTA: por la zona horaria del navegador
-     (Intl.DateTimeFormat().resolvedOptions().timeZone). Sin geo-IP, sin llamada
-     de red, sin dependencia de terceros y sin un milisegundo de latencia.
-     DE DONDE SALE CADA NUMERO: de los currency_options del price que COBRA hoy
-     (price_1UPh53CkKktoiQEZYREwwEVF), leidos por GET el 2026-10-13. DIGITO A DIGITO.
-     Prohibido convertir por TRM y prohibido redondear: si la pantalla y Stripe
-     no dicen el mismo numero, el comprador ve un precio y paga otro.
-     Stripe entrega el monto en unidad MENOR; el exponente de cada moneda se
-     verifico reproduciendo la TAB ya publicada de melamina (CLP y PYG van sin
-     decimales, las otras 12 con 2). La division ya esta hecha aca.
-     FAIL-SAFE: zona fuera del mapa (Europa, USA, Ecuador, Panama, El Salvador)
-     => MON=null => se pinta USD igual que hoy, con los MISMOS literales.
-     Nunca pantalla en blanco, nunca undefined, nunca NaN: un precio roto es
-     peor que un precio en dolares. */
-  var TAB={"ARS":21900,"BOB":169,"BRL":69.99,"CLP":12900,"COP":44900,"CRC":6490,"DOP":789,"GTQ":104.99,"HNL":379,"MXN":239,"NIO":509,"PEN":46.99,"PYG":81900,"UYU":559};
-  var TZ2CC={"America/Bogota":"CO","America/Mexico_City":"MX","America/Cancun":"MX","America/Merida":"MX","America/Monterrey":"MX","America/Matamoros":"MX","America/Chihuahua":"MX","America/Ciudad_Juarez":"MX","America/Ojinaga":"MX","America/Hermosillo":"MX","America/Mazatlan":"MX","America/Bahia_Banderas":"MX","America/Tijuana":"MX","America/Lima":"PE","America/Santiago":"CL","America/Punta_Arenas":"CL","Pacific/Easter":"CL","America/Guatemala":"GT","America/Tegucigalpa":"HN","America/Managua":"NI","America/Costa_Rica":"CR","America/Santo_Domingo":"DO","America/Asuncion":"PY","America/Montevideo":"UY","America/La_Paz":"BO","America/Buenos_Aires":"AR","America/Cordoba":"AR","America/Mendoza":"AR","America/Rosario":"AR","America/Catamarca":"AR","America/Jujuy":"AR","America/Sao_Paulo":"BR","America/Bahia":"BR","America/Fortaleza":"BR","America/Recife":"BR","America/Belem":"BR","America/Manaus":"BR","America/Cuiaba":"BR","America/Campo_Grande":"BR","America/Porto_Velho":"BR","America/Boa_Vista":"BR","America/Rio_Branco":"BR","America/Maceio":"BR","America/Araguaina":"BR","America/Santarem":"BR","America/Eirunepe":"BR","America/Noronha":"BR","America/Sao_Luis":"BR","America/Guayaquil":"EC","America/El_Salvador":"SV","America/Panama":"PA","America/Argentina":"AR","America/Santa_Isabel":"MX"};
-  var MONEDAS={CO:"COP",MX:"MXN",PE:"PEN",CL:"CLP",AR:"ARS",BR:"BRL",GT:"GTQ",HN:"HNL",NI:"NIO",CR:"CRC",DO:"DOP",PY:"PYG",UY:"UYU",BO:"BOB",EC:null,SV:null,PA:null};
-  var SIM={COP:"$",MXN:"$",ARS:"$",CLP:"$",UYU:"$",DOP:"RD$",PEN:"S/",BRL:"R$",GTQ:"Q",HNL:"L",NIO:"C$",CRC:"\u20a1",PYG:"\u20b2",BOB:"Bs"};
-  var LOC={COP:"es-CO",MXN:"es-MX",ARS:"es-AR",CLP:"es-CL",PEN:"es-PE",UYU:"es-UY",BOB:"es-BO",PYG:"es-PY",GTQ:"es-GT",HNL:"es-HN",NIO:"es-NI",CRC:"es-CR",DOP:"es-DO",BRL:"pt-BR"};
-  var MON=null;
-  try{
-    var tz=(Intl.DateTimeFormat().resolvedOptions().timeZone)||"";
-    var cc=TZ2CC[tz]||TZ2CC[tz.replace("/Argentina/","/")]||TZ2CC[String(tz).split("/").slice(0,2).join("/")]||null;
-    var cur=cc?MONEDAS[cc]:null;
-    if(cur&&TAB[cur]) MON={cur:cur,t:TAB[cur]};
-  }catch(e){}
-  function fnum(n){
-    var dec=(n%1!==0)?2:0;
-    return SIM[MON.cur]+n.toLocaleString(LOC[MON.cur]||"es",{minimumFractionDigits:dec,maximumFractionDigits:dec});
-  }
-  /* en USD se devuelve el LITERAL de siempre, no un numero reformateado: el
-     visitante de fuera de la tabla recibe exactamente los bytes de hoy. */
-  function precio(k){ return MON ? fnum(MON.t) : 'US$'+PR[k]; }
-  /* el grano de redondeo sale de la PROPIA TAB, como grano() en melamina: si el
-     precio de la moneda es entero, el tachado cae en el mismo orden de decenas
-     o centenas; si lleva decimales, termina en .99 como el precio.
-     DIFERENCIA DECLARADA CON MELAMINA: alla el ancla es una SUMA de precios de
-     lista y se redondea hacia ABAJO, porque hacia arriba la inflaria. Aca el
-     ancla no es una suma: es el inverso aritmetico del 80% YA PUBLICADO
-     (12.99 / 0,20 = 64.95). Redondear hacia abajo en las monedas con decimales
-     bajaria el badge publicado de 80% a 79%, asi que aca va hacia ARRIBA y el
-     ajuste maximo son 4 centavos. El porcentaje NO se escribe de memoria:
-     pintarAncla lo recalcula con los dos numeros que tiene delante, de modo que
-     si algun dia deja de dar 80 se publica el REAL. */
-  function grano(v){
-    if(v%1!==0) return 0.01;
-    var g=1000;
-    while(g>1){ if(v%g===0) return g; g/=10; }
-    return 1;
-  }
-  function anclaLocal(v){
-    var g=grano(v), x=v/0.20;
-    if(g===0.01) return (x%1===0) ? x : Math.ceil(x)-0.01;
-    return Math.ceil(x/g)*g;
-  }
-  function pintarAncla(k){
-    var c=document.querySelector('.ancla'), lis=document.getElementById('anc-lista'), off=document.getElementById('anc-off');
-    if(!c) return;
-    var antes=ANTES[k];
-    if(!antes){ c.style.display='none'; return; }
-    /* en moneda local los dos numeros salen de la TAB (el de hoy) y de su propio
-       80% (el tachado); en USD salen de los literales de siempre. */
-    var s=MON?anclaLocal(MON.t):parseFloat(antes), h=MON?MON.t:parseFloat(PR[k]);
-    if(!(s>h)){ c.style.display='none'; return; }   /* antes callarse que mentir */
-    var pct=Math.floor(100*(1-h/s));
-    c.style.display='';
-    lis.textContent=MON?fnum(s):'US$'+antes;
-    off.textContent=pct+'% OFF';
-  }
-  var REF=null;
-  try{
-    var q=new URLSearchParams(location.search);
-    REF=q.get('ad')||q.get('utm_content')||null;
-    if(REF){ REF=REF.replace(/[^A-Za-z0-9_-]/g,'').slice(0,60)||null; if(REF) sessionStorage.setItem('motosRef',REF); }
-    if(!REF) REF=sessionStorage.getItem('motosRef');
-    if(!REF && (q.get('fbclid')||/facebook\.com|instagram\.com/.test(document.referrer))) REF='MOTOS-META-SINTAG';
-  }catch(e){}
-  /* OJO: a wa.me NO se le cuelga nada. El `text=QUIERO INFO MOTOS` es el
-     disparador textual del bot vendedor; un parametro de mas es tocar un
-     sistema vivo. Al checkout de Stripe SI se le cuelga client_reference_id:
-     es el unico campo que Stripe acepta y es el que ata la venta al anuncio. */
-  function conRef(u){ if(u.charAt(0)==='#'||/wa\.me|api\.whatsapp\.com/.test(u)) return u;
-    return REF ? u+(u.indexOf('?')<0?'?':'&')+'client_reference_id='+REF : u; }
-  var btn=document.getElementById('btn-pago'), big=document.getElementById('precio-grande');
-  function up(){
-    var k='base', t=precio(k); window.__precioUSD=PR[k];   /* el pixel sigue en USD */
-    /* el href ya viene ESCRITO en el HTML; el JS lo confirma, no lo inventa:
-       si este bloque muere, el boton sigue llevando al checkout igual. */
-    /* los 5 botones de compra, no solo el de la caja: todos van al mismo checkout
-       y todos tienen que llevar la etiqueta de atribucion o la venta sale sin anuncio. */
-    var compras=document.querySelectorAll('a[data-buy]');
-    for(var j=0;j<compras.length;j++){
-      if(/buy\.stripe\.com/.test(compras[j].getAttribute('href')||'')) compras[j].href=conRef(LINKS[k]);
-    }
-    if(btn && !btn.getAttribute('data-buy')) btn.href=conRef(LINKS[k]);
-    if(big) big.textContent=t;
-    var bb=document.getElementById('buybar-precio'); if(bb) bb.textContent=t;
-    var fp=document.getElementById('faq-precio'); if(fp) fp.textContent=t;
-    if(btn) btn.textContent='ACCEDE AHORA · '+t+' \u2192';
-    /* los puntos que el HTML traia clavados en dolares: si este bloque muere,
-       el HTML sigue mostrando US$ y el boton sigue llevando al checkout. */
-    var hp=document.getElementById('hero-precio'); if(hp) hp.textContent=t;
-    var ha=document.getElementById('hero-antes'); if(ha) ha.textContent=MON?fnum(anclaLocal(MON.t)):'US$'+ANTES['base'];
-    var pp=document.getElementById('paso-precio'); if(pp) pp.textContent=t;
-    pintarAncla(k);
-  }
-  up();
-})();
-
-/* countdown real de 15 min por sesión (mismo mecanismo que en melamina: sessionStorage,
-   no se reinicia con F5, sí con sesión nueva) */
-(function(){
-  var e=document.getElementById('reloj-d');
-  if(!e) return;
-  var MIN=15, KEY='motosDeadline15', fin;
-  try{ fin=parseInt(sessionStorage.getItem(KEY),10); }catch(x){}
-  if(!fin||isNaN(fin)||fin<Date.now()||(fin-Date.now())>MIN*60000){
-    fin=Date.now()+MIN*60000;
-    try{ sessionStorage.setItem(KEY,fin); }catch(x){}
-  }
-  function pad(n){ return (n<10?'0':'')+n; }
-  function tic(){
-    var s=Math.floor(Math.max(0,fin-Date.now())/1000);
-    e.textContent=pad(Math.floor(s/60))+':'+pad(s%60);
-  }
-  tic(); setInterval(tic,1000);
-})();
-
-/* galería: cada video arranca cuando se ve (son clips livianos de ~130 KB) */
-(function(){
-  var vids=[].slice.call(document.querySelectorAll('.fx video'));
-  if(!('IntersectionObserver' in window)) return;
-  var io=new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      var v=e.target;
-      if(e.isIntersecting){ if(!v.src) v.src=v.dataset.src; v.play().catch(function(){}); }
-      else v.pause();
-    });
-  },{threshold:.25});
-  vids.forEach(function(v){ io.observe(v); });
-  /* ORDEN AZ9: el mockup del hero pasó de 1 video (#hero-v) a 3 (carrusel .device .slide video) */
-  [].slice.call(document.querySelectorAll('.device video')).forEach(function(v){ v.play().catch(function(){}); });
-})();
-
-/* SINCRONIA DEL HERO (orden 2026-10-12). Los rotulos (.slide) y los thumbs (dvThumb/dvFill)
-   corren 9s en CSS y arrancaban al parsear; el video arranca cuando acaba de cargar, asi que
-   el thumb resaltado no era el del segmento en pantalla. Se pausan y se sueltan en el primer
-   'playing', reiniciando las animaciones para que el ciclo empiece en 0 junto con el video.
-   FAIL-OPEN, no negociable: si el video nunca arranca (autoplay negado, bloqueador, 404) el
-   reloj las suelta igual a los 1500 ms, y sin JS nunca llegan a pausarse. Medir no frena la vista. */
-(function(){
-  var d=document.querySelector('.device'); if(!d) return;
-  var v=d.querySelector('video.hero-uno'); if(!v) return;
-  var animados=[].slice.call(d.querySelectorAll('.pv .slide,.tl .thumb,.tl .thumb .fill'));
-  if(!animados.length) return;
-  d.classList.add('dv-wait');
-  var suelto=false;
-  function soltar(){
-    if(suelto) return; suelto=true;
-    animados.forEach(function(e){ e.style.animation='none'; });
-    void d.offsetWidth;                       /* reflujo: reinicia el ciclo en 0 */
-    animados.forEach(function(e){ e.style.animation=''; });
-    d.classList.remove('dv-wait');
-  }
-  v.addEventListener('playing', soltar, {once:true});
-  setTimeout(soltar, 1500);                   /* FAIL-OPEN */
-  if(!v.paused && v.currentTime>0) soltar();  /* ya estaba corriendo */
-})();
-
-/* tarjetas "pack": la lista de piezas aparece (fade-in) al final del clip y se oculta al reiniciar el loop */
-(function(){
-  [].slice.call(document.querySelectorAll('.fx-pack')).forEach(function(item){
-    var v=item.querySelector('video'), ov=item.querySelector('.fx-labels');
-    if(!v||!ov) return;
-    var shown=false;
-    v.addEventListener('timeupdate',function(){
-      if(!v.duration) return;
-      if(v.duration - v.currentTime < .3){ if(!shown){ shown=true; ov.classList.add('show'); } }
-      else if(v.currentTime < .4){ if(shown){ shown=false; ov.classList.remove('show'); } }
-    });
-    v.addEventListener('ended',function(){ if(!shown){ shown=true; ov.classList.add('show'); } });
-  });
-})();
-
-/* despiece (moto grande + escenas chicas motor/carburador/freno/embrague/horquilla):
-   - Precarga TEMPRANA: arranca a ~1.5 viewports de distancia (no 600px fijos) y pide TODOS
-     los frames de una, esperando su decode() real (no solo el onload de red).
-   - No anima hasta tener TODOS los frames decodificados: mientras faltan, se queda fijo en
-     el cuadro 1 (nunca pinta un cuadro a medias ni salta lejos por frames que no llegaron).
-   - Animación con "persecución" (lerp 0.14) en vez de salto directo: cada frame el dibujado
-     avanza hacia el cuadro objetivo por rAF continuo, estilo Apple.
-   - Dibujado FRACCIONAL: entre el cuadro i e i+1 se hace crossfade según la fracción.
-   - Si cfg.track viene (carril alto dp-scrub con el stage sticky adentro), el progreso 0→1
-     se mide sobre ESE carril (no sobre el stage, que ya no se mueve mientras está pegado).
-     cfg.n ya viene recortado al tramo con movimiento real (medido cuadro a cuadro); los
-     cuadros finales "congelados" de cada clip fuente no se cargan ni se mapean.
-   - Liberar memoria SOLO a >3 viewports de distancia (nunca la escena actual ni las vecinas
-     inmediatas): soltarla apenas sale de pantalla recargaba ~150 imágenes de golpe al volver
-     a entrar y eso es lo que se sentía como scroll "trabado". */
-function initEscena(cfg){
-  var stage=document.getElementById(cfg.stage), canvas=document.getElementById(cfg.canvas), bar=cfg.bar?document.getElementById(cfg.bar):null;
-  var track=cfg.track?document.getElementById(cfg.track):null;
-  if(!stage||!canvas) return;
-  var ctx=canvas.getContext('2d'), N=cfg.n, W=canvas.width, H=canvas.height;
-  var dir = window.matchMedia('(max-width:720px)').matches ? cfg.dirMob : cfg.dirDesk;
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var imgs=[], ok=[], loadedCount=0, allReady=false, want=1, cur=1, started=false, running=false, gen=0;
-  var stickyTopPx=window.innerHeight*0.10, lastWidth=window.innerWidth;
-  var READY_FRAC=0.9, READY_TIMEOUT_MS=4000; /* ORDEN AZ5: no esperar el 100% de los N cuadros */
-  /* ORDEN BA1: el servidor es HTTP/2 y MULTIPLEXA. La tanda por reloj (10 cada 60 ms) reparte los
-     pedidos en el TIEMPO pero NO limita cuantos avanzan A LA VEZ: con los 71 abiertos sobre
-     1,6 Mbit/s todos progresan juntos y el PRIMERO termina casi cuando terminan todos (medido:
-     15.000 ms hasta que la escena seguia al dedo). Con tope de cuadros EN VUELO el cuadro 1 se
-     lleva el ancho de banda entero y llega en decimas, y el resto entra detras, en orden. */
-  var CONC=6, enVuelo=0, pend=[], pedido=[], WD_MS=8000;
-  function src(i){ return dir+'f_'+String(i).padStart(3,'0')+'.webp'; }
-  /* ORDEN AZ5: si el cuadro exacto no está listo (hueco por decode() que nunca resolvió o
-     que todavía no llegó), usar el cuadro cargado más cercano en vez de dejar el canvas
-     congelado en la posición vieja o, peor, en blanco. */
-  function nearestLoaded(i){
-    if(ok[i]) return i;
-    for(var d=1; d<N; d++){
-      if(i-d>=1 && ok[i-d]) return i-d;
-      if(i+d<=N && ok[i+d]) return i+d;
-    }
-    return null;
-  }
-  function draw(pos){
-    if(!started || !imgs.length) return;
-    if(!allReady) pos=1;
-    var i0=Math.floor(pos), frac=pos-i0, i1=i0+1;
-    if(i0<1){ i0=1; i1=1; frac=0; } if(i1>N){ i1=N; if(i0>N) i0=N; }
-    if(!imgs[i0] || !ok[i0]){
-      i0=nearestLoaded(i0);
-      if(i0==null) return; /* todavía no cargó ni un solo cuadro: nada que pintar */
-      i1=i0; frac=0;
-    }
-    ctx.clearRect(0,0,W,H);
-    ctx.globalAlpha=1; ctx.drawImage(imgs[i0],0,0,W,H);
-    if(i1!==i0 && frac>0.004 && imgs[i1] && ok[i1]){ ctx.globalAlpha=frac; ctx.drawImage(imgs[i1],0,0,W,H); ctx.globalAlpha=1; }
-  }
-  function checkReady(){
-    if(allReady) return;
-    if(loadedCount>=Math.ceil(N*READY_FRAC)){ allReady=true; draw(cur); }
-  }
-  /* ORDEN BA1: pedir() NO carga: encola. El tope de en-vuelo decide cuando sale cada uno. */
-  function pedir(i){
-    if(imgs[i] || pedido[i]) return;
-    pedido[i]=1; pend.push(i); bombear();
-  }
-  function bombear(){
-    while(enVuelo<CONC && pend.length) load(pend.shift());
-  }
-  function load(i){
-    if(imgs[i]) return;
-    var myGen=gen;
-    var im=new Image(); im.decoding='async';
-    /* ORDEN BA1: los cuadros no le pelean el ancho de banda al hero.mp4 ni a la primera pantalla.
-       VEL1: los primeros 10 con prioridad normal para que arranque; el resto en segundo plano (baja). */
-    if(i>10 && 'fetchPriority' in im) im.fetchPriority='low';
-    im.src=src(i); imgs[i]=im;
-    enVuelo++;
-    var soltado=false;
-    /* devuelve la ranura UNA sola vez. Si en el medio corrio liberar() (gen cambio), el contador
-       ya se puso en 0 con los cuadros: este pedido viejo no lo toca, o lo dejaria en negativo y
-       entrarian mas de CONC a la vez. */
-    var soltar=function(){
-      if(soltado) return; soltado=true;
-      if(gen!==myGen) return;
-      enVuelo--; bombear();
-    };
-    /* ORDEN BA1: con tope, un decode colgado se queda con la ranura para siempre. El watchdog la
-       devuelve a los 8 s; el cuadro puede llegar despues, mark() sigue siendo valido. */
-    setTimeout(soltar, WD_MS);
-    var mark=function(){
-      soltar();
-      if(imgs[i]!==im) return; ok[i]=true; loadedCount++;
-      if(i===1) draw(cur); /* ORDEN AZ5: cuadro 1 visible en cuanto él esté listo, sin esperar a los demás */
-      checkReady();
-      if(!allReady && Math.abs(cur-i)<1) draw(cur);
-    };
-    /* ORDEN AZ5: decode() puede rechazar de forma intermitente en WebKit/iOS aun con el
-       recurso bien cargado (presión de memoria/decodes concurrentes) — tratar el rechazo
-       igual que el éxito (como ya hace initMotor) en vez de un no-op que deja el cuadro
-       fantasma para siempre y nunca llega a loadedCount>=N. */
-    if(im.decode){ im.decode().then(mark, mark); } else { im.onload=mark; im.onerror=mark; }
-  }
-  function startLoad(){
-    if(started) return; started=true;
-    gen++; var myGen=gen;
-    if(reduced){ pedir(N); want=N; cur=N; if(bar) bar.style.setProperty('--t',1); return; }
-    /* ORDEN BA1: se encolan TODOS en orden 1..N y el tope los va soltando. Reemplaza la tanda por
-       reloj, que en HTTP/2 no limitaba nada. Mismo total de peticiones y de bytes: cambia cuantos
-       viajan a la vez, y por eso el cuadro 1 llega primero en vez de llegar con el ultimo. */
-    for(var i=1; i<=N; i++) pedir(i);
-    /* ORDEN AZ5: red/decode lentos no deben trabar la animación para siempre — a los 4s se
-       anima con lo que haya, rellenando huecos con el cuadro cargado más cercano (ver draw()). */
-    setTimeout(function(){
-      if(gen!==myGen || allReady) return;
-      if(started){ allReady=true; draw(cur); }
-    }, READY_TIMEOUT_MS);
-  }
-  function anim(){
-    if(!started){ running=false; return; }
-    var d=want-cur;
-    if(Math.abs(d)<0.01){ cur=want; draw(cur); running=false; return; }
-    cur+=d*0.14;
-    draw(cur);
-    requestAnimationFrame(anim);
-  }
-  function kick(){ if(!running){ running=true; requestAnimationFrame(anim); } }
-  function tick(){
-    var vh=window.innerHeight, p;
-    if(track){
-      /* progreso del carril sticky: 0 cuando el carril empieza a pegarse, 1 cuando se despega */
-      var tr=track.getBoundingClientRect(), stageH=stage.getBoundingClientRect().height;
-      var range=Math.max(1, tr.height - stageH);
-      p=(stickyTopPx - tr.top)/range;
-    } else {
-      var r=stage.getBoundingClientRect();
-      /* p=0 cuando el stage asoma por abajo; p=1 cuando su centro llega al 45% de la pantalla */
-      var start=vh, end=vh*0.45 - r.height/2;
-      p=(start - r.top)/(start - end);
-    }
-    p=Math.max(0,Math.min(1,p));
-    if(bar) bar.style.setProperty('--t',p.toFixed(3));
-    want=1+p*(N-1);
-    kick();
-  }
-  function onResize(){
-    var w=window.innerWidth;
-    if(w===lastWidth) return; /* iOS cambia innerHeight al mostrar/ocultar la barra de direcciones sin cambiar el ancho: ignorar ese resize */
-    lastWidth=w;
-    stickyTopPx=window.innerHeight*0.10;
-    tick();
-  }
-  function activar(){
-    startLoad();
-    if(reduced) return;
-    window.addEventListener('scroll',tick,{passive:true});
-    window.addEventListener('resize',onResize);
-    tick();
-  }
-  function liberar(){
-    if(!started) return;
-    gen++; /* invalida el setTimeout de READY_TIMEOUT_MS de esta tanda si todavía estaba pendiente */
-    window.removeEventListener('scroll',tick);
-    window.removeEventListener('resize',onResize);
-    imgs=[]; ok=[]; loadedCount=0; allReady=false; started=false; running=false; want=1; cur=1;
-    pend=[]; pedido=[]; enVuelo=0;   /* ORDEN BA1: la cola y el contador se van con los cuadros */
-    ctx.clearRect(0,0,W,H);
-  }
-  var ioTarget=track||stage;
-  /* VEL1: no pedir cuadros hasta que la página terminó de cargar (píxel + hero primero); después igual que antes */
-  function armar(){
-  if('IntersectionObserver' in window){
-    var lead=Math.round(window.innerHeight*1.5)+'px';
-    var io=new IntersectionObserver(function(es){
-      es.forEach(function(e){ if(e.isIntersecting && !started) activar(); });
-    },{rootMargin:lead+' 0px '+lead+' 0px'});
-    io.observe(ioTarget);
-    var farLead=Math.round(window.innerHeight*3)+'px';
-    var ioFar=new IntersectionObserver(function(es){
-      es.forEach(function(e){ if(!e.isIntersecting) liberar(); });
-    },{rootMargin:farLead+' 0px '+farLead+' 0px'});
-    ioFar.observe(ioTarget);
-  } else { activar(); }
-  }
-  if(document.readyState==='complete') armar(); else window.addEventListener('load',armar);
-}
-initEscena({stage:'dp-stage',canvas:'dp-canvas',bar:'dp-bar',n:71,
-  dirMob:'img/dp-frames/mob/',dirDesk:'img/dp-frames/desk/'});
-/* ORDEN AY9: las otras 4 escenas (carburador/freno/embrague/horquilla) quedan ocultas
-   en el HTML, así que sus llamadas también se comentan — si se cargaran aquí pedirían
-   sus frames igual, aunque la sección esté comentada en el DOM.
-initEscena({stage:'scr-carburador-stage',canvas:'scr-carburador-canvas',track:'scr-carburador-track',n:148,
-  dirMob:'img/scroll-frames/carburador/mob/',dirDesk:'img/scroll-frames/carburador/desk/'});
-initEscena({stage:'scr-freno-stage',canvas:'scr-freno-canvas',track:'scr-freno-track',n:143,
-  dirMob:'img/scroll-frames/freno/mob/',dirDesk:'img/scroll-frames/freno/desk/'});
-initEscena({stage:'scr-embrague-stage',canvas:'scr-embrague-canvas',track:'scr-embrague-track',n:148,
-  dirMob:'img/scroll-frames/embrague/mob/',dirDesk:'img/scroll-frames/embrague/desk/'});
-initEscena({stage:'scr-horquilla-stage',canvas:'scr-horquilla-canvas',track:'scr-horquilla-track',n:147,
-  dirMob:'img/scroll-frames/horquilla/mob/',dirDesk:'img/scroll-frames/horquilla/desk/'});
-*/
-
-/* ORDEN AY9: el motor queda como ÚNICO despiece chico, así que se le dedica un camino propio
-   en vez de compartir initEscena con las otras 4 (que ya no cargan):
-   - LUT de remuestreo por longitud de arco: medido el diff perceptual (gris, media de |Δ|)
-     cuadro a cuadro de los 137 frames reales (mob), salía muy disparejo (CV=0.41: tramos casi
-     quietos al inicio/fin, picos de hasta 12.8 en el medio). LUT[t] devuelve la posición de
-     cuadro continua para que cada paso de scroll cueste el mismo cambio visual (CV 0.41->0.12,
-     max 12.8->7.4, medido re-renderizando con el mismo crossfade que usa draw()). No hizo
-     falta RIFE ni minterpolate: el crossfade ya existente entre cuadros vecinos alcanza para
-     reespaciar sin generar frames nuevos ni perder nitidez.
-   - Precarga total desde que abre la página (ya no hay otras 4 escenas compitiendo por ancho
-     de banda/decode): decode() de los 137 cuadros de una, cuadro 1 fijo hasta que estén listos.
-   - Canvas a resolución real de pantalla (devicePixelRatio, tope 2) en vez de al tamaño fijo
-     784x1400 del HTML, recalculado si cambia el ancho.
-   - Solo redibuja si la posición cambió (evita trabajo de GPU/CPU en frames idénticos) y ya
-     no hace clearRect: el primer drawImage con alpha=1 ya cubre el canvas entero. */
-var LUT_MOTOR=[1.0,4.168,6.397,8.38,10.254,11.749,13.379,14.753,16.028,17.361,18.801,20.104,21.459,23.046,24.414,25.801,27.491,28.881,30.27,31.9,33.2,34.329,35.512,36.829,38.075,39.114,40.532,41.975,43.454,44.616,45.737,46.735,47.613,48.439,49.279,50.194,51.148,52.007,52.743,53.545,54.402,55.236,55.972,56.753,57.489,58.216,58.976,59.773,60.526,61.233,61.888,62.525,63.17,63.847,64.536,65.215,65.869,66.472,67.066,67.702,68.363,69.04,69.638,70.254,70.9,71.486,72.067,72.686,73.318,73.964,74.597,75.215,75.811,76.409,77.008,77.643,78.287,78.941,79.577,80.199,80.798,81.438,82.095,82.731,83.428,84.152,84.818,85.453,86.086,86.785,87.511,88.236,88.935,89.604,90.278,90.964,91.716,92.494,93.273,94.03,94.714,95.447,96.216,96.983,97.875,98.702,99.459,100.21,101.05,102.022,102.87,103.666,104.451,105.262,106.142,107.062,107.963,108.789,109.682,110.571,111.56,112.582,113.484,114.412,115.531,116.616,117.718,118.823,120.097,121.594,122.9,124.249,126.05,127.702,129.935,132.279,137.0];
-function initMotor(cfg){
-  var stage=document.getElementById(cfg.stage), canvas=document.getElementById(cfg.canvas);
-  if(!stage||!canvas) return;
-  var ctx=canvas.getContext('2d'), N=cfg.n, LUT=cfg.lut;
-  var dir = window.matchMedia('(max-width:720px)').matches ? cfg.dirMob : cfg.dirDesk;
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* want/cur viven en progreso de scroll 0..1 (t); draw()/LUT trabajan en posición de cuadro 1..N */
-  var imgs=[], ok=[], loadedCount=0, allReady=false, want=0, cur=0, drawnPos=-1, running=false;
-  var pedido=[], grueso=false, fino=false;
-  /* ORDEN BA1: mismo tope de en-vuelo que initEscena (ver el comentario de alla). OJO: aca el
-     dedupe NO va en el encolado — lo hace ya cola(), que marca pedido[k]=1 al armar la lista. */
-  var CONC=6, enVuelo=0, pend=[], WD_MS=8000;
-  /* ORDEN AZ5 / initEscena, copiado textual: si el cuadro exacto no esta listo se usa el
-     cuadro cargado mas CERCANO, en vez de congelar la escena. Es lo que permite que el
-     despiece vaya de corrido de punta a punta con una fraccion de los cuadros. */
-  function nearestLoaded(i){
-    if(ok[i]) return i;
-    for(var d=1; d<N; d++){
-      if(i-d>=1 && ok[i-d]) return i-d;
-      if(i+d<=N && ok[i+d]) return i+d;
-    }
-    return null;
-  }
-  var W=0, H=0, lastWidth=window.innerWidth;
-  function src(i){ return dir+'f_'+String(i).padStart(3,'0')+'.webp'; }
-  function lutPos(p){
-    var x=Math.max(0,Math.min(1,p))*(LUT.length-1), i0=Math.floor(x), frac=x-i0;
-    if(i0>=LUT.length-1) return LUT[LUT.length-1];
-    return LUT[i0]*(1-frac)+LUT[i0+1]*frac;
-  }
-  function sizeCanvas(){
-    var rect=canvas.getBoundingClientRect();
-    if(!rect.width||!rect.height) return;
-    var dpr=Math.min(window.devicePixelRatio||1,2);
-    var w=Math.max(1,Math.round(rect.width*dpr)), h=Math.max(1,Math.round(rect.height*dpr));
-    if(w===W && h===H) return;
-    W=w; H=h; canvas.width=W; canvas.height=H; drawnPos=-1; draw(lutPos(cur),true);
-  }
-  function draw(pos,force){
-    if(!imgs.length || !W || !H) return;
-    /* ORDEN 12-oct ("tiene que ir de corrido"): se fue el `if(!allReady) pos=1`, que era
-       lo que clavaba la escena en el cuadro 1 hasta tener los 137 decodificados. Ahora se
-       dibuja la posicion que pide el scroll, con el cuadro cargado mas cercano.
-       FAIL-SAFE: si no cargo NI UN cuadro, nearestLoaded devuelve null y no se pinta nada
-       — el canvas queda como estaba, igual que hoy. Y lo que se dibuja es siempre un
-       cuadro COMPLETO (repetido si hace falta): jamas uno a medias. */
-    if(!force && Math.abs(pos-drawnPos)<0.01) return; /* dibujar SOLO cuando cambia el cuadro */
-    var i0=Math.floor(pos), frac=pos-i0, i1=i0+1;
-    if(i0<1){ i0=1; i1=1; frac=0; } if(i1>N){ i1=N; if(i0>N) i0=N; }
-    if(!imgs[i0] || !ok[i0]){
-      i0=nearestLoaded(i0);
-      if(i0==null) return;   /* todavia no cargo ni un solo cuadro: nada que pintar */
-      i1=i0; frac=0;
-    }
-    drawnPos=pos;
-    ctx.drawImage(imgs[i0],0,0,W,H); /* cubre el canvas entero: no hace falta clearRect antes */
-    if(i1!==i0 && frac>0.004 && imgs[i1] && ok[i1]){ ctx.globalAlpha=frac; ctx.drawImage(imgs[i1],0,0,W,H); ctx.globalAlpha=1; }
-  }
-  function bombear(){
-    while(enVuelo<CONC && pend.length) load(pend.shift());
-  }
-  function load(i){
-    if(imgs[i]) return;
-    var im=new Image(); im.decoding='async';
-    if('fetchPriority' in im) im.fetchPriority='low';   /* ORDEN BA1: no le pelea al hero.mp4 */
-    im.src=src(i); imgs[i]=im;
-    enVuelo++;
-    var soltado=false;
-    var soltar=function(){ if(soltado) return; soltado=true; enVuelo--; bombear(); };
-    setTimeout(soltar, WD_MS);   /* ORDEN BA1: un decode colgado no se queda con la ranura */
-    var mark=function(){
-      soltar();
-      if(imgs[i]!==im) return; ok[i]=true; loadedCount++;
-      if(loadedCount>=N) allReady=true;
-      /* cada cuadro que llega REFINA lo que ya se ve: se repinta la posicion actual
-         con force, porque drawnPos no cambio pero el material SI mejoro. */
-      draw(lutPos(cur),true);
-    };
-    /* el onerror es un fallo REAL (404): sin el, en un navegador sin decode() el cuadro
-       quedaba fantasma para siempre. Mismo criterio que initEscena. */
-    if(im.decode){ im.decode().then(mark, mark); } else { im.onload=mark; im.onerror=mark; }
-  }
-  /* ORDEN 12-oct: la carga se parte en DOS etapas y el orden es GRUESO A FINO.
-     Antes era 1,2,3...137 en una sola rafaga al abrir: 137 peticiones y 3,16 MB (medido a
-     360px) peleandose el ancho de banda con el hero y con la moto grande, y el despiece
-     igual no se movia hasta tener los 137.
-       - ETAPA GRUESA (al abrir): un cuadro cada 16 => 9 cuadros, ~0,2 MB. Con esos 9 el
-         recorrido COMPLETO ya es recorrible de punta a punta (nearestLoaded rellena los
-         huecos) => va de corrido desde el primer momento, grueso pero sin trabarse.
-       - ETAPA FINA (cuando el stage se acerca): pasos 8/4/2/1, cada pasada afina lo que
-         ya se ve. Mismo total de peticiones y de bytes: cambia CUANDO y en QUE ORDEN. */
-  function cola(pasos){
-    var q=[];
-    for(var pi=0; pi<pasos.length; pi++)
-      for(var k=1; k<=N; k+=pasos[pi]) if(!pedido[k]){ pedido[k]=1; q.push(k); }
-    if(pasos[pasos.length-1]===1 && !pedido[N]){ pedido[N]=1; q.push(N); }
-    return q;
-  }
-  /* ORDEN BA1: encolar en ORDEN y dejar que el tope de en-vuelo los suelte, en vez de la tanda
-     por reloj. El reparto grueso->fino NO cambia: cambia cuantos viajan a la vez.
-     La lista ya viene deduplicada por cola() (marca pedido[k]), asi que aca se empuja derecho:
-     filtrarla otra vez por pedido[] la dejaria vacia y el despiece no pediria NI UN cuadro. */
-  function encolar(q){
-    for(var c=0;c<q.length;c++) pend.push(q[c]);
-    bombear();
-  }
-  function arrancarGrueso(){ if(grueso) return; grueso=true; encolar(cola([16])); }
-  function arrancarFino(){ if(fino) return; fino=true; encolar(cola([8,4,2,1])); }
-  function anim(){
-    var d=want-cur;
-    if(Math.abs(d)<0.0015){ cur=want; draw(lutPos(cur),false); running=false; return; }
-    cur+=d*0.14;
-    draw(lutPos(cur),false);
-    requestAnimationFrame(anim);
-  }
-  function kick(){ if(!running){ running=true; requestAnimationFrame(anim); } }
-  function tick(){
-    /* ORDEN AZ2: sin carril/pin — mismo criterio que la moto grande (initEscena sin track):
-       p=0 cuando el TOPE del stage asoma por abajo de la pantalla (top=100vh), p=1 cuando
-       su CENTRO llega al 38% de la pantalla (ya completamente abierto antes de salir). */
-    var vh=window.innerHeight, r=stage.getBoundingClientRect();
-    var start=vh, end=vh*0.38 - r.height/2;
-    var p=(start - r.top)/(start - end);
-    p=Math.max(0,Math.min(1,p));
-    want=p;
-    kick();
-  }
-  function onResize(){
-    var w=window.innerWidth;
-    if(w===lastWidth){ sizeCanvas(); return; } /* iOS cambia innerHeight sin cambiar el ancho */
-    lastWidth=w;
-    sizeCanvas();
-    tick();
-  }
-  sizeCanvas();
-  /* VEL1: antes arrancarGrueso() aquí (9 cuadros al abrir). Ahora los gruesos salen cuando el stage se acerca,
-     justo antes del refino (mismo orden grueso->fino, mismos cuadros), y solo después de 'load'. */
-  if(reduced){ arrancarFino(); want=1; cur=1; return; } /* sin movimiento: solo hace falta el cuadro final nitido */
-  window.addEventListener('scroll',tick,{passive:true});
-  window.addEventListener('resize',onResize);
-  /* los 128 cuadros de refino ya NO se piden al abrir. Medido a 360px: el stage del motor
-     vive en y=4221 con pantalla de 800, asi que con 2 pantallas de adelanto el refino
-     empieza a pedirse desde scrollY~1821, no desde 0.
-     FAIL-SAFE: sin IntersectionObserver se pide todo ya mismo (comportamiento de hoy). */
-  function armarMotor(){
-  if('IntersectionObserver' in window){
-    var lead=Math.round(window.innerHeight*2)+'px';
-    var io=new IntersectionObserver(function(es){
-      for(var k=0;k<es.length;k++) if(es[k].isIntersecting){ arrancarGrueso(); arrancarFino(); io.disconnect(); break; }
-    },{rootMargin:lead+' 0px '+lead+' 0px'});
-    io.observe(stage);
-  } else { arrancarGrueso(); arrancarFino(); }
-  }
-  if(document.readyState==='complete') armarMotor(); else window.addEventListener('load',armarMotor);
-  tick();
-}
-initMotor({stage:'scr-motor-stage',canvas:'scr-motor-canvas',n:137,lut:LUT_MOTOR,
-  dirMob:'img/scroll-frames/motor/mob/',dirDesk:'img/scroll-frames/motor/desk/'});
-</script>
-<script>
-/* VEL1: los logos de la cinta están bajo el pliegue pero se pedían al abrir: se piden apenas termina la carga.
-   Mismo archivo y mismo tamaño reservado (width/height). */
-(function(){function poner(){[].forEach.call(document.querySelectorAll('img[data-src^="img/logos/"]'),function(im){im.src=im.getAttribute('data-src');});}
-if(document.readyState==='complete') poner(); else window.addEventListener('load',poner);})();
-</script>
-<script>
-/* VEL2: el video de la portada ya no compite con el píxel ni con el primer pantallazo. Mientras tanto se ve su póster
-   (vid/g1.webp, precargado con prioridad alta). El video se pide después de 'load' (que espera a fbevents y su config)
-   y de un momento libre del navegador; arranca solo, igual que antes (muted/loop/autoplay). Mismo archivo. */
-(function(){
-  function arrancar(){
-    [].forEach.call(document.querySelectorAll('video.hero-uno[data-src]'),function(v){
-      v.preload='auto'; v.src=v.getAttribute('data-src'); v.removeAttribute('data-src');
-      var p=v.play(); if(p&&p.catch) p.catch(function(){});
-    });
-  }
-  function luego(){ if('requestIdleCallback' in window) requestIdleCallback(arrancar,{timeout:1500}); else setTimeout(arrancar,200); }
-  if(document.readyState==='complete') luego(); else window.addEventListener('load',luego);
-})();
-</script>
+<div class="marcas">
+<p class="marcas-lb">Manuales de más de 90 marcas de motos</p>
+<div class="cinta"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img data-src="img/logos/honda.svg" loading="eager" alt="Honda" width="33" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/suzuki.svg" loading="eager" alt="Suzuki" width="48" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bajaj.svg" loading="eager" alt="Bajaj" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/hero.svg" loading="eager" alt="Hero" width="99" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/akt.webp" loading="eager" alt="AKT" width="120" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/cfmoto.svg" loading="eager" alt="CFMoto" width="162" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bmw.svg" loading="eager" alt="BMW" width="32" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/harley-davidson.svg" loading="eager" alt="Harley-Davidson" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/aprilia.svg" loading="eager" alt="Aprilia" width="72" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bera.png" loading="eager" alt="Bera" width="53" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/husqvarna.svg" loading="eager" alt="Husqvarna" width="133" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/indian.svg" loading="eager" alt="Indian" width="71" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/keeway.svg" loading="eager" alt="Keeway" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kymco.svg" loading="eager" alt="Kymco" width="145" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/loncin.png" loading="eager" alt="Loncin" width="152" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/moto-guzzi.svg" loading="eager" alt="Moto Guzzi" width="91" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/motomel.png" loading="eager" alt="Motomel" width="56" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img data-src="img/logos/honda.svg" loading="eager" alt="" width="33" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/suzuki.svg" loading="eager" alt="" width="48" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bajaj.svg" loading="eager" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/hero.svg" loading="eager" alt="" width="99" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/akt.webp" loading="eager" alt="" width="120" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/cfmoto.svg" loading="eager" alt="" width="162" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bmw.svg" loading="eager" alt="" width="32" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/harley-davidson.svg" loading="eager" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/aprilia.svg" loading="eager" alt="" width="72" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bera.png" loading="eager" alt="" width="53" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/husqvarna.svg" loading="eager" alt="" width="133" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/indian.svg" loading="eager" alt="" width="71" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/keeway.svg" loading="eager" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kymco.svg" loading="eager" alt="" width="145" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/loncin.png" loading="eager" alt="" width="152" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/moto-guzzi.svg" loading="eager" alt="" width="91" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/motomel.png" loading="eager" alt="" width="56" height="26" decoding="async"></span></span></div></div>
+<div class="cinta cinta-rev"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img data-src="img/logos/yamaha.svg" loading="eager" alt="Yamaha" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kawasaki.svg" loading="eager" alt="Kawasaki" width="180" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/tvs.svg" loading="eager" alt="TVS" width="178" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ktm.svg" loading="eager" alt="KTM" width="103" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/italika.svg" loading="eager" alt="Italika" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vento.svg" loading="eager" alt="Vento" width="156" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/gilera.svg" loading="eager" alt="Gilera" width="22" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/sym.svg" loading="eager" alt="SYM" width="81" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vespa.svg" loading="eager" alt="Vespa" width="87" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ducati.svg" loading="eager" alt="Ducati" width="30" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/mv-agusta.svg" loading="eager" alt="MV Agusta" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/piaggio.svg" loading="eager" alt="Piaggio" width="23" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/royal-enfield.svg" loading="eager" alt="Royal Enfield" width="70" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/shineray.png" loading="eager" alt="Shineray" width="147" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/triumph.svg" loading="eager" alt="Triumph" width="95" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zanella.png" loading="eager" alt="Zanella" width="60" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zongshen.png" loading="eager" alt="Zongshen" width="37" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img data-src="img/logos/yamaha.svg" loading="eager" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kawasaki.svg" loading="eager" alt="" width="180" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/tvs.svg" loading="eager" alt="" width="178" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ktm.svg" loading="eager" alt="" width="103" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/italika.svg" loading="eager" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vento.svg" loading="eager" alt="" width="156" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/gilera.svg" loading="eager" alt="" width="22" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/sym.svg" loading="eager" alt="" width="81" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vespa.svg" loading="eager" alt="" width="87" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ducati.svg" loading="eager" alt="" width="30" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/mv-agusta.svg" loading="eager" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/piaggio.svg" loading="eager" alt="" width="23" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/royal-enfield.svg" loading="eager" alt="" width="70" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/shineray.png" loading="eager" alt="" width="147" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/triumph.svg" loading="eager" alt="" width="95" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zanella.png" loading="eager" alt="" width="60" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zongshen.png" loading="eager" alt="" width="37" height="26" decoding="async"></span></span></div></div>
+</div>
+<div class="wrap">
+<div class="badges">
+<div class="badge"><div class="n">+1.200</div><div class="l">manuales de taller</div></div>
+<div class="badge"><div class="n">+90</div><div class="l">marcas de motos</div></div>
+<div class="badge"><div class="n">+880</div><div class="l">modelos distintos</div></div>
+<div class="badge"><div class="n">2T·4T</div><div class="l">motores cubiertos</div></div>
+</div>
+</div>
+</header>
+<section class="dp" id="despiece">
+<div class="wrap">
+<div class="eyebrow">Así se ve por dentro</div>
+<h2 class="title">Tu moto, pieza por pieza</h2>
+<p class="lead">Baja y mira cómo se abre: cada pieza, el orden de armado y el torque de cada tornillo.</p>
+</div>
+<div class="dp-stage" id="dp-stage">
+<canvas id="dp-canvas" width="1280" height="732" role="img" aria-label="Una moto armada que se abre en despiece mientras bajas: motor, tanque, horquilla, chasis, cadena, escape, ruedas y embrague por separado."></canvas>
+</div>
+<div class="dp-bar" id="dp-bar" aria-hidden="true"><i></i></div>
+<ul class="dp-piezas">
+<li>Motor</li><li>Tanque</li><li>Horquilla</li><li>Chasis</li><li>Cadena</li><li>Escape</li><li>Ruedas</li><li>Embrague</li>
+</ul>
+</section>
+<section id="comprar">
+<div class="wrap" style="text-align:center">
+<div class="eyebrow">Llévatelo hoy</div>
+<h2 class="title">Un solo pago. Acceso de por vida.</h2>
+<div class="price-card">
+<div class="price-label">Precio de hoy</div>
+<div class="ancla"><s id="anc-lista">US$64.95</s><span class="off" id="anc-off">80% OFF</span></div>
+<div class="price-now" id="precio-grande">US$12.99</div>
+<div class="price-per">✅ pago único · <b>acceso inmediato</b></div>
+<div class="reloj" id="reloj"><span class="rl"><span class="pt" aria-hidden="true"></span>La oferta termina en</span><b id="reloj-d">--:--</b></div>
+<div class="pl-head">Lo que recibes</div>
+<ul class="price-list">
+<li><span class="ic">✓</span><b>+1.200 manuales</b> de taller</li>
+<li><span class="ic">✓</span>De <b>más de 90 marcas</b></li>
+<li><span class="ic">✓</span><b>+880 modelos</b> distintos</li>
+<li><span class="ic">✓</span><b>Diagramas eléctricos</b></li>
+<li><span class="ic">✓</span>Despiece, armado y torque</li>
+<li><span class="ic">✓</span>Curso de mecánica <b>2T·4T</b></li>
+<li><span class="ic">✓</span>Se abre sin internet</li>
+<li><span class="ic">✓</span>Acceso inmediato al pagar</li>
+</ul>
+<a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn big" id="btn-pago" data-buy="1">ACCEDE AHORA · US$12.99 →</a>
+<div class="cta-note">Pago seguro · Acceso inmediato al confirmar</div>
+<div class="trust-row">
+<span class="trust-chip"><span class="e">🔒</span>Pago cifrado con Stripe</span>
+<span class="trust-chip"><span class="e">💳</span>Visa · Mastercard</span>
+<span class="trust-chip"><span class="e">🛡️</span>Garantía 3 días</span>
+</div>
+</div>
+</div>
+</section>
+<section style="background:var(--panel)">
+<div class="wrap">
+<div class="guar">
+<div class="shield">🛡️</div>
+<h2 class="title" style="margin-bottom:10px">Garantía de 3 días</h2>
+<p class="lead" style="margin:0 auto">Tiempo real para revisar los manuales antes de decidir. Si en 3 días no es lo que esperabas, te devolvemos el 100% de tu dinero.</p>
+</div>
+</div>
+</section>
+<section class="pack-intro">
+<div class="wrap">
+<div class="eyebrow">Así es el contenido</div>
+<h2 class="title">Lo que hay dentro del pack</h2>
+<p class="lead">Baja y mira cada sistema abrirse pieza por pieza, con su nombre.</p>
+</div>
+</section>
+<section class="dp dp-mini" id="escena-motor">
+<div class="dp-stage-mini" id="scr-motor-stage">
+<canvas id="scr-motor-canvas" width="784" height="1361" role="img" aria-label="Motor de motocicleta que se desarma pieza por pieza: tapa de válvulas, árbol de levas, culata, cilindro, pistón, biela, cigüeñal, embrague, magneto."></canvas>
+</div>
+<ul class="dp-piezas"><li>Motor</li><li>Tapa de válvulas</li><li>Árbol de levas</li><li>Culata</li><li>Cilindro</li><li>Pistón</li><li>Biela</li><li>Cigüeñal</li><li>Embrague</li><li>Magneto</li></ul>
+</section>
+<section id="contenido-completo">
+<div class="wrap">
+<div class="eyebrow">Contenido completo</div>
+<h2 class="title">Bloque por bloque, sin relleno</h2>
+<p class="lead">Lo que ves es lo que hay.</p>
+<div class="acc">
+<details open>
+<summary><span class="tt"><span class="em">📘</span>Manuales de taller por marca</span><span class="meta">más de 1.200 manuales · más de 90 marcas</span></summary>
+<div class="acc-body"><p>Yamaha (381), Honda (159), Bajaj (130), Kawasaki (106), Suzuki (68), AKT (38), TVS (37), KTM (36), Kymco (26), SYM (23), Hero (23), Victory (20), Italika (19), BMW (15), CFMoto (14), Benelli (13), Harley-Davidson (13), Aprilia (12), Ducati (9) y muchas marcas más. El número entre paréntesis es cuántos manuales hay de esa marca, contados en la carpeta. Despiece, montaje y diagramas eléctricos.</p></div>
+</details>
+<details>
+<summary><span class="tt"><span class="em">🎓</span>Curso de Mecánica 2T y 4T</span><span class="meta">incluido</span></summary>
+<div class="acc-body"><p>Cómo funciona un motor de <b>2 tiempos</b> y uno de <b>4 tiempos</b>, en qué se parecen, en qué no, y qué se hace distinto al desarmarlos. Explicado desde cero.</p></div>
+</details>
+<details>
+<summary><span class="tt"><span class="em">🎁</span>Incluido en el pack</span><span class="meta">sin costo extra</span></summary>
+<div class="acc-body">
+<ul>
+<li>Curso Polarizado de Autos</li>
+<li>Aire Acondicionado Automotriz</li><li>Mecánica para Bicicleta</li>
+</ul>
+</div>
+</details>
+</div>
+<div class="entrega">
+<div class="step"><div class="num">1</div><h3>Pagas una sola vez</h3><p><span id="paso-precio">US$12.99</span>, sin mensualidades. Pagas con tarjeta en la página segura de Stripe y entras de inmediato.</p></div>
+<div class="step"><div class="num">2</div><h3>Recibes el acceso al instante</h3><p>Te llega el enlace a tu carpeta privada apenas se confirma el pago.</p></div>
+<div class="step"><div class="num">3</div><h3>Buscas tu moto y la arreglas</h3><p>PDF por marca y modelo. Se abre en el celular, incluso sin internet.</p></div>
+</div>
+</div>
+</section>
+<section style="background:var(--panel)" id="faq">
+<div class="wrap">
+<div class="eyebrow">Preguntas frecuentes</div>
+<h2 class="title">Lo que todos preguntan</h2>
+<div class="acc">
+<details><summary><span>¿Sirve para mi moto?</span></summary><div class="acc-body">Son <b>más de 1.200 manuales</b> de <b>más de 90 marcas</b>: Yamaha, Honda, Bajaj, Kawasaki, Suzuki, AKT, TVS, KTM, Kymco, SYM, Hero, Victory, Italika, BMW, CFMoto, Benelli, Harley-Davidson, Aprilia, Ducati, Royal Enfield, Triumph, Can-Am, Keeway, Longjia, Vento, Tekken, Haojue, Husqvarna, Piaggio, Corven y muchas más. Escríbenos tu marca y modelo <a href="https://wa.me/573132579097?text=QUIERO%20INFO%20MOTOS" data-soporte="1" style="color:inherit">por WhatsApp</a> y te confirmamos antes de que pagues.</div></details>
+<details><summary><span>¿Necesito experiencia en mecánica?</span></summary><div class="acc-body">No. El manual te muestra cada pieza y el orden para desarmar y armar, paso a paso.</div></details>
+<details><summary><span>¿Es un pago único?</span></summary><div class="acc-body">Sí. <b id="faq-precio">US$12.99</b> una sola vez, acceso de por vida y 3 días de garantía: si no te sirve, te devolvemos el dinero.</div></details>
+<details><summary><span>¿Cómo recibo los manuales?</span></summary><div class="acc-body">Apenas pagas te llega el acceso. Son PDF que abres en el celular o el PC, y funcionan sin internet una vez descargados.</div></details>
+</div>
+</div>
+</section>
+<footer>
+<div class="wrap">
+<div class="logo" style="justify-content:center;margin-bottom:14px"><img src="img/logo-mark-512.png" alt="MOTO DATA" width="64" height="64" style="display:block;width:64px;height:64px" loading="lazy" decoding="async"></div>
+<p>© 2026 MOTO DATA GLOBAL · Entrega digital inmediata.</p>
+</div>
+</footer>
+<div class="buybar" id="buybar">
+<div class="p"><span id="buybar-precio">US$12.99</span><small>pago único · acceso inmediato</small></div>
+<a href="https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419" class="btn" data-buy="1">ACCEDE AHORA →</a>
+</div>
+<script>(function(){var bar=document.getElementById("buybar");if(!bar)return;var TOPE=320;var BAJA=28;var SUBE=18;var QUIETO=260;var SALTO=600;var PIE=60;var visible=null,ant=0,acum=0,pend=false,t=0;function max(){var m=(document.documentElement.scrollHeight||0)-window.innerHeight;return m>0?m:0}function y(){var v=window.pageYOffset||document.documentElement.scrollTop||0,m=max();return v<0?0:v>m?m:v}function ver(v){if(v===visible)return;visible=v;if(v)bar.classList.remove("oculta");else bar.classList.add("oculta")}function paso(){pend=false;var h=y(),d=h-ant;ant=h;if(d!==0){if(d>SALTO||d<-SALTO)acum=0;else if(acum===0||d>0===acum>0)acum+=d;else acum=d}if(h<TOPE){ver(false);acum=0;return}if(h>=max()-PIE){ver(true);acum=0;return}if(acum<=-SUBE){ver(true);acum=0}else if(acum>=BAJA){ver(false);acum=0}}function alScroll(){if(!pend){pend=true;requestAnimationFrame(paso)}clearTimeout(t);t=setTimeout(function(){acum=0;ant=y();if(ant>=TOPE)ver(true)},QUIETO)}ant=y();ver(ant>=TOPE);addEventListener("scroll",alScroll,{passive:true});addEventListener("resize",function(){ant=y();acum=0},{passive:true})})();(function(){var LINKS={base:"https://buy.stripe.com/dRm5kDebNcK91f3dy157W00?locale=es-419"};var PR={base:"12.99"};var ANTES={base:"64.95"};var TAB={ARS:21900,BOB:169,BRL:69.99,CLP:12900,COP:44900,CRC:6490,DOP:789,GTQ:104.99,HNL:379,MXN:239,NIO:509,PEN:46.99,PYG:81900,UYU:559};var TZ2CC={"America/Bogota":"CO","America/Mexico_City":"MX","America/Cancun":"MX","America/Merida":"MX","America/Monterrey":"MX","America/Matamoros":"MX","America/Chihuahua":"MX","America/Ciudad_Juarez":"MX","America/Ojinaga":"MX","America/Hermosillo":"MX","America/Mazatlan":"MX","America/Bahia_Banderas":"MX","America/Tijuana":"MX","America/Lima":"PE","America/Santiago":"CL","America/Punta_Arenas":"CL","Pacific/Easter":"CL","America/Guatemala":"GT","America/Tegucigalpa":"HN","America/Managua":"NI","America/Costa_Rica":"CR","America/Santo_Domingo":"DO","America/Asuncion":"PY","America/Montevideo":"UY","America/La_Paz":"BO","America/Buenos_Aires":"AR","America/Cordoba":"AR","America/Mendoza":"AR","America/Rosario":"AR","America/Catamarca":"AR","America/Jujuy":"AR","America/Sao_Paulo":"BR","America/Bahia":"BR","America/Fortaleza":"BR","America/Recife":"BR","America/Belem":"BR","America/Manaus":"BR","America/Cuiaba":"BR","America/Campo_Grande":"BR","America/Porto_Velho":"BR","America/Boa_Vista":"BR","America/Rio_Branco":"BR","America/Maceio":"BR","America/Araguaina":"BR","America/Santarem":"BR","America/Eirunepe":"BR","America/Noronha":"BR","America/Sao_Luis":"BR","America/Guayaquil":"EC","America/El_Salvador":"SV","America/Panama":"PA","America/Argentina":"AR","America/Santa_Isabel":"MX"};var MONEDAS={CO:"COP",MX:"MXN",PE:"PEN",CL:"CLP",AR:"ARS",BR:"BRL",GT:"GTQ",HN:"HNL",NI:"NIO",CR:"CRC",DO:"DOP",PY:"PYG",UY:"UYU",BO:"BOB",EC:null,SV:null,PA:null};var SIM={COP:"$",MXN:"$",ARS:"$",CLP:"$",UYU:"$",DOP:"RD$",PEN:"S/",BRL:"R$",GTQ:"Q",HNL:"L",NIO:"C$",CRC:"₡",PYG:"₲",BOB:"Bs"};var LOC={COP:"es-CO",MXN:"es-MX",ARS:"es-AR",CLP:"es-CL",PEN:"es-PE",UYU:"es-UY",BOB:"es-BO",PYG:"es-PY",GTQ:"es-GT",HNL:"es-HN",NIO:"es-NI",CRC:"es-CR",DOP:"es-DO",BRL:"pt-BR"};var MON=null;try{var tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";var cc=TZ2CC[tz]||TZ2CC[tz.replace("/Argentina/","/")]||TZ2CC[String(tz).split("/").slice(0,2).join("/")]||null;var cur=cc?MONEDAS[cc]:null;if(cur&&TAB[cur])MON={cur:cur,t:TAB[cur]}}catch(e){}function fnum(n){var dec=n%1!==0?2:0;return SIM[MON.cur]+n.toLocaleString(LOC[MON.cur]||"es",{minimumFractionDigits:dec,maximumFractionDigits:dec})}function precio(k){return MON?fnum(MON.t):"US$"+PR[k]}function grano(v){if(v%1!==0)return.01;var g=1e3;while(g>1){if(v%g===0)return g;g/=10}return 1}function anclaLocal(v){var g=grano(v),x=v/.2;if(g===.01)return x%1===0?x:Math.ceil(x)-.01;return Math.ceil(x/g)*g}function pintarAncla(k){var c=document.querySelector(".ancla"),lis=document.getElementById("anc-lista"),off=document.getElementById("anc-off");if(!c)return;var antes=ANTES[k];if(!antes){c.style.display="none";return}var s=MON?anclaLocal(MON.t):parseFloat(antes),h=MON?MON.t:parseFloat(PR[k]);if(!(s>h)){c.style.display="none";return}var pct=Math.floor(100*(1-h/s));c.style.display="";lis.textContent=MON?fnum(s):"US$"+antes;off.textContent=pct+"% OFF"}var REF=null;try{var q=new URLSearchParams(location.search);REF=q.get("ad")||q.get("utm_content")||null;if(REF){REF=REF.replace(/[^A-Za-z0-9_-]/g,"").slice(0,60)||null;if(REF)sessionStorage.setItem("motosRef",REF)}if(!REF)REF=sessionStorage.getItem("motosRef");if(!REF&&(q.get("fbclid")||/facebook\.com|instagram\.com/.test(document.referrer)))REF="MOTOS-META-SINTAG"}catch(e){}function conRef(u){if(u.charAt(0)==="#"||/wa\.me|api\.whatsapp\.com/.test(u))return u;return REF?u+(u.indexOf("?")<0?"?":"&")+"client_reference_id="+REF:u}var btn=document.getElementById("btn-pago"),big=document.getElementById("precio-grande");function up(){var k="base",t=precio(k);window.__precioUSD=PR[k];var compras=document.querySelectorAll("a[data-buy]");for(var j=0;j<compras.length;j++){if(/buy\.stripe\.com/.test(compras[j].getAttribute("href")||""))compras[j].href=conRef(LINKS[k])}if(btn&&!btn.getAttribute("data-buy"))btn.href=conRef(LINKS[k]);if(big)big.textContent=t;var bb=document.getElementById("buybar-precio");if(bb)bb.textContent=t;var fp=document.getElementById("faq-precio");if(fp)fp.textContent=t;if(btn)btn.textContent="ACCEDE AHORA · "+t+" →";var hp=document.getElementById("hero-precio");if(hp)hp.textContent=t;var ha=document.getElementById("hero-antes");if(ha)ha.textContent=MON?fnum(anclaLocal(MON.t)):"US$"+ANTES["base"];var pp=document.getElementById("paso-precio");if(pp)pp.textContent=t;pintarAncla(k)}up()})();(function(){var e=document.getElementById("reloj-d");if(!e)return;var MIN=15,KEY="motosDeadline15",fin;try{fin=parseInt(sessionStorage.getItem(KEY),10)}catch(x){}if(!fin||isNaN(fin)||fin<Date.now()||fin-Date.now()>MIN*6e4){fin=Date.now()+MIN*6e4;try{sessionStorage.setItem(KEY,fin)}catch(x){}}function pad(n){return(n<10?"0":"")+n}function tic(){var s=Math.floor(Math.max(0,fin-Date.now())/1e3);e.textContent=pad(Math.floor(s/60))+":"+pad(s%60)}tic();setInterval(tic,1e3)})();(function(){var vids=[].slice.call(document.querySelectorAll(".fx video"));if(!("IntersectionObserver"in window))return;var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){if(!v.src)v.src=v.dataset.src;v.play().catch(function(){})}else v.pause()})},{threshold:.25});vids.forEach(function(v){io.observe(v)});[].slice.call(document.querySelectorAll(".device video")).forEach(function(v){v.play().catch(function(){})})})();(function(){var d=document.querySelector(".device");if(!d)return;var v=d.querySelector("video.hero-uno");if(!v)return;var animados=[].slice.call(d.querySelectorAll(".pv .slide,.tl .thumb,.tl .thumb .fill"));if(!animados.length)return;d.classList.add("dv-wait");var suelto=false;function soltar(){if(suelto)return;suelto=true;animados.forEach(function(e){e.style.animation="none"});void d.offsetWidth;animados.forEach(function(e){e.style.animation=""});d.classList.remove("dv-wait")}v.addEventListener("playing",soltar,{once:true});setTimeout(soltar,1500);if(!v.paused&&v.currentTime>0)soltar()})();(function(){[].slice.call(document.querySelectorAll(".fx-pack")).forEach(function(item){var v=item.querySelector("video"),ov=item.querySelector(".fx-labels");if(!v||!ov)return;var shown=false;v.addEventListener("timeupdate",function(){if(!v.duration)return;if(v.duration-v.currentTime<.3){if(!shown){shown=true;ov.classList.add("show")}}else if(v.currentTime<.4){if(shown){shown=false;ov.classList.remove("show")}}});v.addEventListener("ended",function(){if(!shown){shown=true;ov.classList.add("show")}})})})();function initEscena(cfg){var stage=document.getElementById(cfg.stage),canvas=document.getElementById(cfg.canvas),bar=cfg.bar?document.getElementById(cfg.bar):null;var track=cfg.track?document.getElementById(cfg.track):null;if(!stage||!canvas)return;var ctx=canvas.getContext("2d"),N=cfg.n,W=canvas.width,H=canvas.height;var dir=window.matchMedia("(max-width:720px)").matches?cfg.dirMob:cfg.dirDesk;var reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;var imgs=[],ok=[],loadedCount=0,allReady=false,want=1,cur=1,started=false,running=false,gen=0;var stickyTopPx=window.innerHeight*.1,lastWidth=window.innerWidth;var READY_FRAC=.9,READY_TIMEOUT_MS=4e3;var CONC=6,enVuelo=0,pend=[],pedido=[],WD_MS=8e3;function src(i){return dir+"f_"+String(i).padStart(3,"0")+".webp"}function nearestLoaded(i){if(ok[i])return i;for(var d=1;d<N;d++){if(i-d>=1&&ok[i-d])return i-d;if(i+d<=N&&ok[i+d])return i+d}return null}function draw(pos){if(!started||!imgs.length)return;if(!allReady)pos=1;var i0=Math.floor(pos),frac=pos-i0,i1=i0+1;if(i0<1){i0=1;i1=1;frac=0}if(i1>N){i1=N;if(i0>N)i0=N}if(!imgs[i0]||!ok[i0]){i0=nearestLoaded(i0);if(i0==null)return;i1=i0;frac=0}ctx.clearRect(0,0,W,H);ctx.globalAlpha=1;ctx.drawImage(imgs[i0],0,0,W,H);if(i1!==i0&&frac>.004&&imgs[i1]&&ok[i1]){ctx.globalAlpha=frac;ctx.drawImage(imgs[i1],0,0,W,H);ctx.globalAlpha=1}}function checkReady(){if(allReady)return;if(loadedCount>=Math.ceil(N*READY_FRAC)){allReady=true;draw(cur)}}function pedir(i){if(imgs[i]||pedido[i])return;pedido[i]=1;pend.push(i);bombear()}function bombear(){while(enVuelo<CONC&&pend.length)load(pend.shift())}function load(i){if(imgs[i])return;var myGen=gen;var im=new Image;im.decoding="async";if(i>10&&"fetchPriority"in im)im.fetchPriority="low";im.src=src(i);imgs[i]=im;enVuelo++;var soltado=false;var soltar=function(){if(soltado)return;soltado=true;if(gen!==myGen)return;enVuelo--;bombear()};setTimeout(soltar,WD_MS);var mark=function(){soltar();if(imgs[i]!==im)return;ok[i]=true;loadedCount++;if(i===1)draw(cur);checkReady();if(!allReady&&Math.abs(cur-i)<1)draw(cur)};if(im.decode){im.decode().then(mark,mark)}else{im.onload=mark;im.onerror=mark}}function startLoad(){if(started)return;started=true;gen++;var myGen=gen;if(reduced){pedir(N);want=N;cur=N;if(bar)bar.style.setProperty("--t",1);return}for(var i=1;i<=N;i++)pedir(i);setTimeout(function(){if(gen!==myGen||allReady)return;if(started){allReady=true;draw(cur)}},READY_TIMEOUT_MS)}function anim(){if(!started){running=false;return}var d=want-cur;if(Math.abs(d)<.01){cur=want;draw(cur);running=false;return}cur+=d*.14;draw(cur);requestAnimationFrame(anim)}function kick(){if(!running){running=true;requestAnimationFrame(anim)}}function tick(){var vh=window.innerHeight,p;if(track){var tr=track.getBoundingClientRect(),stageH=stage.getBoundingClientRect().height;var range=Math.max(1,tr.height-stageH);p=(stickyTopPx-tr.top)/range}else{var r=stage.getBoundingClientRect();var start=vh,end=vh*.45-r.height/2;p=(start-r.top)/(start-end)}p=Math.max(0,Math.min(1,p));if(bar)bar.style.setProperty("--t",p.toFixed(3));want=1+p*(N-1);kick()}function onResize(){var w=window.innerWidth;if(w===lastWidth)return;lastWidth=w;stickyTopPx=window.innerHeight*.1;tick()}function activar(){startLoad();if(reduced)return;window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",onResize);tick()}function liberar(){if(!started)return;gen++;window.removeEventListener("scroll",tick);window.removeEventListener("resize",onResize);imgs=[];ok=[];loadedCount=0;allReady=false;started=false;running=false;want=1;cur=1;pend=[];pedido=[];enVuelo=0;ctx.clearRect(0,0,W,H)}var ioTarget=track||stage;function armar(){if("IntersectionObserver"in window){var lead=Math.round(window.innerHeight*1.5)+"px";var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!started)activar()})},{rootMargin:lead+" 0px "+lead+" 0px"});io.observe(ioTarget);var farLead=Math.round(window.innerHeight*3)+"px";var ioFar=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)liberar()})},{rootMargin:farLead+" 0px "+farLead+" 0px"});ioFar.observe(ioTarget)}else{activar()}}if(document.readyState==="complete")armar();else window.addEventListener("load",armar)}initEscena({stage:"dp-stage",canvas:"dp-canvas",bar:"dp-bar",n:71,dirMob:"img/dp-frames/mob/",dirDesk:"img/dp-frames/desk/"});var LUT_MOTOR=[1,4.168,6.397,8.38,10.254,11.749,13.379,14.753,16.028,17.361,18.801,20.104,21.459,23.046,24.414,25.801,27.491,28.881,30.27,31.9,33.2,34.329,35.512,36.829,38.075,39.114,40.532,41.975,43.454,44.616,45.737,46.735,47.613,48.439,49.279,50.194,51.148,52.007,52.743,53.545,54.402,55.236,55.972,56.753,57.489,58.216,58.976,59.773,60.526,61.233,61.888,62.525,63.17,63.847,64.536,65.215,65.869,66.472,67.066,67.702,68.363,69.04,69.638,70.254,70.9,71.486,72.067,72.686,73.318,73.964,74.597,75.215,75.811,76.409,77.008,77.643,78.287,78.941,79.577,80.199,80.798,81.438,82.095,82.731,83.428,84.152,84.818,85.453,86.086,86.785,87.511,88.236,88.935,89.604,90.278,90.964,91.716,92.494,93.273,94.03,94.714,95.447,96.216,96.983,97.875,98.702,99.459,100.21,101.05,102.022,102.87,103.666,104.451,105.262,106.142,107.062,107.963,108.789,109.682,110.571,111.56,112.582,113.484,114.412,115.531,116.616,117.718,118.823,120.097,121.594,122.9,124.249,126.05,127.702,129.935,132.279,137];function initMotor(cfg){var stage=document.getElementById(cfg.stage),canvas=document.getElementById(cfg.canvas);if(!stage||!canvas)return;var ctx=canvas.getContext("2d"),N=cfg.n,LUT=cfg.lut;var dir=window.matchMedia("(max-width:720px)").matches?cfg.dirMob:cfg.dirDesk;var reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;var imgs=[],ok=[],loadedCount=0,allReady=false,want=0,cur=0,drawnPos=-1,running=false;var pedido=[],grueso=false,fino=false;var CONC=6,enVuelo=0,pend=[],WD_MS=8e3;function nearestLoaded(i){if(ok[i])return i;for(var d=1;d<N;d++){if(i-d>=1&&ok[i-d])return i-d;if(i+d<=N&&ok[i+d])return i+d}return null}var W=0,H=0,lastWidth=window.innerWidth;function src(i){return dir+"f_"+String(i).padStart(3,"0")+".webp"}function lutPos(p){var x=Math.max(0,Math.min(1,p))*(LUT.length-1),i0=Math.floor(x),frac=x-i0;if(i0>=LUT.length-1)return LUT[LUT.length-1];return LUT[i0]*(1-frac)+LUT[i0+1]*frac}function sizeCanvas(){var rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;var dpr=Math.min(window.devicePixelRatio||1,2);var w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(w===W&&h===H)return;W=w;H=h;canvas.width=W;canvas.height=H;drawnPos=-1;draw(lutPos(cur),true)}function draw(pos,force){if(!imgs.length||!W||!H)return;if(!force&&Math.abs(pos-drawnPos)<.01)return;var i0=Math.floor(pos),frac=pos-i0,i1=i0+1;if(i0<1){i0=1;i1=1;frac=0}if(i1>N){i1=N;if(i0>N)i0=N}if(!imgs[i0]||!ok[i0]){i0=nearestLoaded(i0);if(i0==null)return;i1=i0;frac=0}drawnPos=pos;ctx.drawImage(imgs[i0],0,0,W,H);if(i1!==i0&&frac>.004&&imgs[i1]&&ok[i1]){ctx.globalAlpha=frac;ctx.drawImage(imgs[i1],0,0,W,H);ctx.globalAlpha=1}}function bombear(){while(enVuelo<CONC&&pend.length)load(pend.shift())}function load(i){if(imgs[i])return;var im=new Image;im.decoding="async";if("fetchPriority"in im)im.fetchPriority="low";im.src=src(i);imgs[i]=im;enVuelo++;var soltado=false;var soltar=function(){if(soltado)return;soltado=true;enVuelo--;bombear()};setTimeout(soltar,WD_MS);var mark=function(){soltar();if(imgs[i]!==im)return;ok[i]=true;loadedCount++;if(loadedCount>=N)allReady=true;draw(lutPos(cur),true)};if(im.decode){im.decode().then(mark,mark)}else{im.onload=mark;im.onerror=mark}}function cola(pasos){var q=[];for(var pi=0;pi<pasos.length;pi++)for(var k=1;k<=N;k+=pasos[pi])if(!pedido[k]){pedido[k]=1;q.push(k)}if(pasos[pasos.length-1]===1&&!pedido[N]){pedido[N]=1;q.push(N)}return q}function encolar(q){for(var c=0;c<q.length;c++)pend.push(q[c]);bombear()}function arrancarGrueso(){if(grueso)return;grueso=true;encolar(cola([16]))}function arrancarFino(){if(fino)return;fino=true;encolar(cola([8,4,2,1]))}function anim(){var d=want-cur;if(Math.abs(d)<.0015){cur=want;draw(lutPos(cur),false);running=false;return}cur+=d*.14;draw(lutPos(cur),false);requestAnimationFrame(anim)}function kick(){if(!running){running=true;requestAnimationFrame(anim)}}function tick(){var vh=window.innerHeight,r=stage.getBoundingClientRect();var start=vh,end=vh*.38-r.height/2;var p=(start-r.top)/(start-end);p=Math.max(0,Math.min(1,p));want=p;kick()}function onResize(){var w=window.innerWidth;if(w===lastWidth){sizeCanvas();return}lastWidth=w;sizeCanvas();tick()}sizeCanvas();if(reduced){arrancarFino();want=1;cur=1;return}window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",onResize);function armarMotor(){if("IntersectionObserver"in window){var lead=Math.round(window.innerHeight*2)+"px";var io=new IntersectionObserver(function(es){for(var k=0;k<es.length;k++)if(es[k].isIntersecting){arrancarGrueso();arrancarFino();io.disconnect();break}},{rootMargin:lead+" 0px "+lead+" 0px"});io.observe(stage)}else{arrancarGrueso();arrancarFino()}}if(document.readyState==="complete")armarMotor();else window.addEventListener("load",armarMotor);tick()}initMotor({stage:"scr-motor-stage",canvas:"scr-motor-canvas",n:137,lut:LUT_MOTOR,dirMob:"img/scroll-frames/motor/mob/",dirDesk:"img/scroll-frames/motor/desk/"})</script>
+<script>(function(){function poner(){[].forEach.call(document.querySelectorAll('img[data-src^="img/logos/"]'),function(im){im.src=im.getAttribute("data-src")})}if(document.readyState==="complete")poner();else window.addEventListener("load",poner)})()</script>
+<script>(function(){function arrancar(){[].forEach.call(document.querySelectorAll("video.hero-uno[data-src]"),function(v){v.preload="auto";v.src=v.getAttribute("data-src");v.removeAttribute("data-src");var p=v.play();if(p&&p.catch)p.catch(function(){})})}function luego(){if("requestIdleCallback"in window)requestIdleCallback(arrancar,{timeout:1500});else setTimeout(arrancar,200)}if(document.readyState==="complete")luego();else window.addEventListener("load",luego)})()</script>
 </body>
 </html>
