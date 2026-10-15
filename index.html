@@ -2,6 +2,101 @@
 <html lang="es">
 <head>
 <base href="rapida/">
+<!-- vel1-motos -->
+<!-- VEL1: píxel primero (antes de fuentes, video e imágenes) + conexiones a Meta abiertas desde ya. Mismo PIXEL y mismos eventos. -->
+<link rel="preconnect" href="https://connect.facebook.net">
+<link rel="preconnect" href="https://www.facebook.com">
+<script>
+(function(){
+  /* ── 1. de donde llego el visitante (sobrevive la navegacion interna) ── */
+  var CLAVES = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term",
+                "fbclid","gclid","ttclid"];
+  var LS = "cu_atrib_v1";
+  function guardado(){
+    try{ return JSON.parse(sessionStorage.getItem(LS) || "{}") || {}; }
+    catch(e){ return {}; }
+  }
+  function capturar(){
+    var prev = guardado(), hay = false, out = {}, q;
+    try{ q = new URLSearchParams(location.search); }catch(e){ return prev; }
+    CLAVES.forEach(function(k){
+      var v = q.get(k);
+      if(v){ out[k] = v; hay = true; }
+    });
+    if(!hay) return prev;              /* sin UTMs nuevos: se respeta el primer toque */
+    out.ts = Date.now();
+    try{ sessionStorage.setItem(LS, JSON.stringify(out)); }catch(e){}
+    return out;
+  }
+  window.CU_ATRIB = capturar();
+
+  /* Etiqueta para el checkout de Stripe. Stripe solo acepta client_reference_id
+     (alfanumerico, guion y guion bajo, max 200): combo + campana + anuncio + fuente.
+     Se conserva el `?ad=`/`utm_content` de esta landing como la pieza ANUNCIO, y
+     MOTOS-META-SINTAG como default, para no perder la atribucion que ya existia. */
+  window.CU_TRACK = function(combo){
+    var a = window.CU_ATRIB || {};
+    function limpio(s){ return String(s || "").replace(/[^A-Za-z0-9_-]/g, "-"); }
+    var q = null;
+    try{ q = new URLSearchParams(location.search); }catch(e){}
+    var anuncio = (q && (q.get("ad") || q.get("utm_content"))) || a.utm_content || null;
+    if(!anuncio){ try{ anuncio = sessionStorage.getItem("motosRef"); }catch(e){} }
+    var deMeta = !!(a.fbclid || (q && q.get("fbclid")) ||
+                    /facebook\.com|instagram\.com/.test(document.referrer));
+    if(!anuncio && deMeta) anuncio = "MOTOS-META-SINTAG";
+    if(anuncio){ try{ sessionStorage.setItem("motosRef", limpio(anuncio)); }catch(e){} }
+    var src = limpio(a.utm_source || (deMeta ? "facebook" : "directo"));
+    var ref = [limpio(combo),
+               limpio(a.utm_campaign || "sin-campana"),
+               limpio(anuncio || "sin-anuncio"),
+               src].join("__").slice(0, 200);
+    return { src: src, ref: ref };
+  };
+
+  /* ── 2. Meta Pixel ── la guarda del molde: sin id NO inicializa nada ── */
+  var PIXEL = "29341735888765973";
+  if(!PIXEL) return;
+
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.fetchPriority='high';
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+  fbq('init', PIXEL);
+  fbq('track', 'PageView');
+
+  /* ── 3. helper: medir nunca frena la entrega ── */
+  window.CU_EV = function(nombre, extra){
+    if(typeof fbq !== "function") return;
+    var d = { content_type:"product", content_ids:['motos-pack-base'],
+              value:(parseFloat(window.__precioUSD)||12.99), currency:"USD" };
+    if(extra) for(var k in extra) d[k] = extra[k];
+    try{ fbq("track", nombre, d); }catch(e){}
+  };
+
+  /* ViewContent: el visitante esta viendo el producto. El value es el precio REAL
+     de entrada. Si cambia el precio de venta, cambiar tambien aqui: Meta optimiza
+     con este numero. */
+  window.CU_EV('ViewContent', { content_name: 'MOTO DATA - mas de 1.200 manuales de taller y curso 2T/4T' });
+
+  /* ORDEN 12-oct: el boton ya no abre un chat, abre el checkout de Stripe ⇒ el
+     evento que corresponde es InitiateCheckout (el mismo que ya usa pack-scroll;
+     asi las dos paginas son comparables). Contact se queda pero SOLO donde de
+     verdad hay un contacto: el enlace de soporte por WhatsApp.
+     El precio sale de window.__precio*, NUNCA de la pantalla: el texto visible
+     esta en moneda local y mandaria un value falso (curado en CapCut el 28-sep). */
+  document.addEventListener('click', function(e){
+    if(!e.target.closest) return;
+    var a = e.target.closest('[data-buy]');
+    if(a){ try{ window.CU_EV('InitiateCheckout'); }catch(x){} return; }
+    var s = e.target.closest('[data-soporte]');
+    if(s){ try{ window.CU_EV('Contact'); }catch(x){} }
+  }, true);
+})();
+</script>
+<!-- VEL1: póster del video del hero (lo primero que se ve) con prioridad alta -->
+<link rel="preload" as="image" href="vid/g1.webp" fetchpriority="high">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MOTO DATA: más de 1.200 manuales de taller de más de 90 marcas · con el diagrama eléctrico de tu moto</title>
@@ -636,95 +731,6 @@
      ⛔ Purchase NO se dispara aca: lo manda el SERVIDOR con value/currency tal cual
         de Stripe (event_id = purchase_<session_id>). El Purchase de navegador con
         moneda clavada es el bug conocido del /ir/ de gamebox (Meta 29 vs caja 19). -->
-<script>
-(function(){
-  /* ── 1. de donde llego el visitante (sobrevive la navegacion interna) ── */
-  var CLAVES = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term",
-                "fbclid","gclid","ttclid"];
-  var LS = "cu_atrib_v1";
-  function guardado(){
-    try{ return JSON.parse(sessionStorage.getItem(LS) || "{}") || {}; }
-    catch(e){ return {}; }
-  }
-  function capturar(){
-    var prev = guardado(), hay = false, out = {}, q;
-    try{ q = new URLSearchParams(location.search); }catch(e){ return prev; }
-    CLAVES.forEach(function(k){
-      var v = q.get(k);
-      if(v){ out[k] = v; hay = true; }
-    });
-    if(!hay) return prev;              /* sin UTMs nuevos: se respeta el primer toque */
-    out.ts = Date.now();
-    try{ sessionStorage.setItem(LS, JSON.stringify(out)); }catch(e){}
-    return out;
-  }
-  window.CU_ATRIB = capturar();
-
-  /* Etiqueta para el checkout de Stripe. Stripe solo acepta client_reference_id
-     (alfanumerico, guion y guion bajo, max 200): combo + campana + anuncio + fuente.
-     Se conserva el `?ad=`/`utm_content` de esta landing como la pieza ANUNCIO, y
-     MOTOS-META-SINTAG como default, para no perder la atribucion que ya existia. */
-  window.CU_TRACK = function(combo){
-    var a = window.CU_ATRIB || {};
-    function limpio(s){ return String(s || "").replace(/[^A-Za-z0-9_-]/g, "-"); }
-    var q = null;
-    try{ q = new URLSearchParams(location.search); }catch(e){}
-    var anuncio = (q && (q.get("ad") || q.get("utm_content"))) || a.utm_content || null;
-    if(!anuncio){ try{ anuncio = sessionStorage.getItem("motosRef"); }catch(e){} }
-    var deMeta = !!(a.fbclid || (q && q.get("fbclid")) ||
-                    /facebook\.com|instagram\.com/.test(document.referrer));
-    if(!anuncio && deMeta) anuncio = "MOTOS-META-SINTAG";
-    if(anuncio){ try{ sessionStorage.setItem("motosRef", limpio(anuncio)); }catch(e){} }
-    var src = limpio(a.utm_source || (deMeta ? "facebook" : "directo"));
-    var ref = [limpio(combo),
-               limpio(a.utm_campaign || "sin-campana"),
-               limpio(anuncio || "sin-anuncio"),
-               src].join("__").slice(0, 200);
-    return { src: src, ref: ref };
-  };
-
-  /* ── 2. Meta Pixel ── la guarda del molde: sin id NO inicializa nada ── */
-  var PIXEL = "29341735888765973";
-  if(!PIXEL) return;
-
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
-  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-
-  fbq('init', PIXEL);
-  fbq('track', 'PageView');
-
-  /* ── 3. helper: medir nunca frena la entrega ── */
-  window.CU_EV = function(nombre, extra){
-    if(typeof fbq !== "function") return;
-    var d = { content_type:"product", content_ids:['motos-pack-base'],
-              value:(parseFloat(window.__precioUSD)||12.99), currency:"USD" };
-    if(extra) for(var k in extra) d[k] = extra[k];
-    try{ fbq("track", nombre, d); }catch(e){}
-  };
-
-  /* ViewContent: el visitante esta viendo el producto. El value es el precio REAL
-     de entrada. Si cambia el precio de venta, cambiar tambien aqui: Meta optimiza
-     con este numero. */
-  window.CU_EV('ViewContent', { content_name: 'MOTO DATA - mas de 1.200 manuales de taller y curso 2T/4T' });
-
-  /* ORDEN 12-oct: el boton ya no abre un chat, abre el checkout de Stripe ⇒ el
-     evento que corresponde es InitiateCheckout (el mismo que ya usa pack-scroll;
-     asi las dos paginas son comparables). Contact se queda pero SOLO donde de
-     verdad hay un contacto: el enlace de soporte por WhatsApp.
-     El precio sale de window.__precio*, NUNCA de la pantalla: el texto visible
-     esta en moneda local y mandaria un value falso (curado en CapCut el 28-sep). */
-  document.addEventListener('click', function(e){
-    if(!e.target.closest) return;
-    var a = e.target.closest('[data-buy]');
-    if(a){ try{ window.CU_EV('InitiateCheckout'); }catch(x){} return; }
-    var s = e.target.closest('[data-soporte]');
-    if(s){ try{ window.CU_EV('Contact'); }catch(x){} }
-  }, true);
-})();
-</script>
 </head>
 <body>
 
@@ -777,8 +783,8 @@
 
   <div class="marcas">
     <p class="marcas-lb">Manuales de más de 90 marcas de motos</p>
-    <div class="cinta"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img src="img/logos/honda.svg" alt="Honda" width="33" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/suzuki.svg" alt="Suzuki" width="48" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bajaj.svg" alt="Bajaj" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/hero.svg" alt="Hero" width="99" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/akt.webp" alt="AKT" width="120" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/cfmoto.svg" alt="CFMoto" width="162" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bmw.svg" alt="BMW" width="32" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/harley-davidson.svg" alt="Harley-Davidson" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/aprilia.svg" alt="Aprilia" width="72" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bera.png" alt="Bera" width="53" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/husqvarna.svg" alt="Husqvarna" width="133" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/indian.svg" alt="Indian" width="71" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/keeway.svg" alt="Keeway" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kymco.svg" alt="Kymco" width="145" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/loncin.png" alt="Loncin" width="152" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/moto-guzzi.svg" alt="Moto Guzzi" width="91" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/motomel.png" alt="Motomel" width="56" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img src="img/logos/honda.svg" alt="" width="33" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/suzuki.svg" alt="" width="48" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bajaj.svg" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/hero.svg" alt="" width="99" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/akt.webp" alt="" width="120" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/cfmoto.svg" alt="" width="162" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bmw.svg" alt="" width="32" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/harley-davidson.svg" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/aprilia.svg" alt="" width="72" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/bera.png" alt="" width="53" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/husqvarna.svg" alt="" width="133" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/indian.svg" alt="" width="71" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/keeway.svg" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kymco.svg" alt="" width="145" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/loncin.png" alt="" width="152" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/moto-guzzi.svg" alt="" width="91" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/motomel.png" alt="" width="56" height="26" decoding="async"></span></span></div></div>
-    <div class="cinta cinta-rev"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img src="img/logos/yamaha.svg" alt="Yamaha" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kawasaki.svg" alt="Kawasaki" width="180" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/tvs.svg" alt="TVS" width="178" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ktm.svg" alt="KTM" width="103" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/italika.svg" alt="Italika" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vento.svg" alt="Vento" width="156" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/gilera.svg" alt="Gilera" width="22" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/sym.svg" alt="SYM" width="81" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vespa.svg" alt="Vespa" width="87" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ducati.svg" alt="Ducati" width="30" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/mv-agusta.svg" alt="MV Agusta" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/piaggio.svg" alt="Piaggio" width="23" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/royal-enfield.svg" alt="Royal Enfield" width="70" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/shineray.png" alt="Shineray" width="147" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/triumph.svg" alt="Triumph" width="95" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zanella.png" alt="Zanella" width="60" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zongshen.png" alt="Zongshen" width="37" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img src="img/logos/yamaha.svg" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/kawasaki.svg" alt="" width="180" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/tvs.svg" alt="" width="178" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ktm.svg" alt="" width="103" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/italika.svg" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vento.svg" alt="" width="156" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/gilera.svg" alt="" width="22" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/sym.svg" alt="" width="81" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/vespa.svg" alt="" width="87" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/ducati.svg" alt="" width="30" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/mv-agusta.svg" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/piaggio.svg" alt="" width="23" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/royal-enfield.svg" alt="" width="70" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/shineray.png" alt="" width="147" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/triumph.svg" alt="" width="95" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zanella.png" alt="" width="60" height="26" decoding="async"></span><span class="cinta-it"><img src="img/logos/zongshen.png" alt="" width="37" height="26" decoding="async"></span></span></div></div>
+    <div class="cinta"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img data-src="img/logos/honda.svg" loading="eager" alt="Honda" width="33" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/suzuki.svg" loading="eager" alt="Suzuki" width="48" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bajaj.svg" loading="eager" alt="Bajaj" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/hero.svg" loading="eager" alt="Hero" width="99" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/akt.webp" loading="eager" alt="AKT" width="120" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/cfmoto.svg" loading="eager" alt="CFMoto" width="162" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bmw.svg" loading="eager" alt="BMW" width="32" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/harley-davidson.svg" loading="eager" alt="Harley-Davidson" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/aprilia.svg" loading="eager" alt="Aprilia" width="72" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bera.png" loading="eager" alt="Bera" width="53" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/husqvarna.svg" loading="eager" alt="Husqvarna" width="133" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/indian.svg" loading="eager" alt="Indian" width="71" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/keeway.svg" loading="eager" alt="Keeway" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kymco.svg" loading="eager" alt="Kymco" width="145" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/loncin.png" loading="eager" alt="Loncin" width="152" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/moto-guzzi.svg" loading="eager" alt="Moto Guzzi" width="91" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/motomel.png" loading="eager" alt="Motomel" width="56" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img data-src="img/logos/honda.svg" loading="eager" alt="" width="33" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/suzuki.svg" loading="eager" alt="" width="48" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bajaj.svg" loading="eager" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/hero.svg" loading="eager" alt="" width="99" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/akt.webp" loading="eager" alt="" width="120" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/cfmoto.svg" loading="eager" alt="" width="162" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bmw.svg" loading="eager" alt="" width="32" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/harley-davidson.svg" loading="eager" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/aprilia.svg" loading="eager" alt="" width="72" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/bera.png" loading="eager" alt="" width="53" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/husqvarna.svg" loading="eager" alt="" width="133" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/indian.svg" loading="eager" alt="" width="71" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/keeway.svg" loading="eager" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kymco.svg" loading="eager" alt="" width="145" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/loncin.png" loading="eager" alt="" width="152" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/moto-guzzi.svg" loading="eager" alt="" width="91" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/motomel.png" loading="eager" alt="" width="56" height="26" decoding="async"></span></span></div></div>
+    <div class="cinta cinta-rev"><div class="cinta-track"><span class="cinta-grp"><span class="cinta-it"><img data-src="img/logos/yamaha.svg" loading="eager" alt="Yamaha" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kawasaki.svg" loading="eager" alt="Kawasaki" width="180" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/tvs.svg" loading="eager" alt="TVS" width="178" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ktm.svg" loading="eager" alt="KTM" width="103" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/italika.svg" loading="eager" alt="Italika" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vento.svg" loading="eager" alt="Vento" width="156" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/gilera.svg" loading="eager" alt="Gilera" width="22" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/sym.svg" loading="eager" alt="SYM" width="81" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vespa.svg" loading="eager" alt="Vespa" width="87" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ducati.svg" loading="eager" alt="Ducati" width="30" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/mv-agusta.svg" loading="eager" alt="MV Agusta" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/piaggio.svg" loading="eager" alt="Piaggio" width="23" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/royal-enfield.svg" loading="eager" alt="Royal Enfield" width="70" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/shineray.png" loading="eager" alt="Shineray" width="147" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/triumph.svg" loading="eager" alt="Triumph" width="95" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zanella.png" loading="eager" alt="Zanella" width="60" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zongshen.png" loading="eager" alt="Zongshen" width="37" height="26" decoding="async"></span></span><span class="cinta-grp" aria-hidden="true"><span class="cinta-it"><img data-src="img/logos/yamaha.svg" loading="eager" alt="" width="139" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/kawasaki.svg" loading="eager" alt="" width="180" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/tvs.svg" loading="eager" alt="" width="178" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ktm.svg" loading="eager" alt="" width="103" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/italika.svg" loading="eager" alt="" width="150" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vento.svg" loading="eager" alt="" width="156" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/gilera.svg" loading="eager" alt="" width="22" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/sym.svg" loading="eager" alt="" width="81" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/vespa.svg" loading="eager" alt="" width="87" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/ducati.svg" loading="eager" alt="" width="30" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/mv-agusta.svg" loading="eager" alt="" width="39" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/piaggio.svg" loading="eager" alt="" width="23" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/royal-enfield.svg" loading="eager" alt="" width="70" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/shineray.png" loading="eager" alt="" width="147" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/triumph.svg" loading="eager" alt="" width="95" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zanella.png" loading="eager" alt="" width="60" height="26" decoding="async"></span><span class="cinta-it"><img data-src="img/logos/zongshen.png" loading="eager" alt="" width="37" height="26" decoding="async"></span></span></div></div>
   </div>
 
   <div class="wrap">
@@ -961,7 +967,7 @@
 
 <footer>
   <div class="wrap">
-    <div class="logo" style="justify-content:center;margin-bottom:14px"><img src="img/logo-mark-512.png" alt="MOTO DATA" width="64" height="64" style="display:block;width:64px;height:64px"></div>
+    <div class="logo" style="justify-content:center;margin-bottom:14px"><img src="img/logo-mark-512.png" alt="MOTO DATA" width="64" height="64" style="display:block;width:64px;height:64px" loading="lazy" decoding="async"></div>
     <!-- Pie: solo el credito. El descargo de marcas (.disc) salio por orden del 13-oct. -->
     <p>© 2026 MOTO DATA GLOBAL · Entrega digital inmediata.</p>
   </div>
@@ -1316,8 +1322,9 @@ function initEscena(cfg){
     if(imgs[i]) return;
     var myGen=gen;
     var im=new Image(); im.decoding='async';
-    /* ORDEN BA1: los cuadros no le pelean el ancho de banda al hero.mp4 ni a la primera pantalla */
-    if('fetchPriority' in im) im.fetchPriority='low';
+    /* ORDEN BA1: los cuadros no le pelean el ancho de banda al hero.mp4 ni a la primera pantalla.
+       VEL1: los primeros 10 con prioridad normal para que arranque; el resto en segundo plano (baja). */
+    if(i>10 && 'fetchPriority' in im) im.fetchPriority='low';
     im.src=src(i); imgs[i]=im;
     enVuelo++;
     var soltado=false;
@@ -1411,6 +1418,8 @@ function initEscena(cfg){
     ctx.clearRect(0,0,W,H);
   }
   var ioTarget=track||stage;
+  /* VEL1: no pedir cuadros hasta que la página terminó de cargar (píxel + hero primero); después igual que antes */
+  function armar(){
   if('IntersectionObserver' in window){
     var lead=Math.round(window.innerHeight*1.5)+'px';
     var io=new IntersectionObserver(function(es){
@@ -1423,6 +1432,8 @@ function initEscena(cfg){
     },{rootMargin:farLead+' 0px '+farLead+' 0px'});
     ioFar.observe(ioTarget);
   } else { activar(); }
+  }
+  if(document.readyState==='complete') armar(); else window.addEventListener('load',armar);
 }
 initEscena({stage:'dp-stage',canvas:'dp-canvas',bar:'dp-bar',n:71,
   dirMob:'img/dp-frames/mob/',dirDesk:'img/dp-frames/desk/'});
@@ -1590,8 +1601,8 @@ function initMotor(cfg){
     tick();
   }
   sizeCanvas();
-  arrancarGrueso();  /* los 9 gruesos SI salen al abrir: son ~0,2 MB y son los que hacen que
-                        el despiece se mueva de punta a punta desde el segundo uno */
+  /* VEL1: antes arrancarGrueso() aquí (9 cuadros al abrir). Ahora los gruesos salen cuando el stage se acerca,
+     justo antes del refino (mismo orden grueso->fino, mismos cuadros), y solo después de 'load'. */
   if(reduced){ arrancarFino(); want=1; cur=1; return; } /* sin movimiento: solo hace falta el cuadro final nitido */
   window.addEventListener('scroll',tick,{passive:true});
   window.addEventListener('resize',onResize);
@@ -1599,17 +1610,26 @@ function initMotor(cfg){
      vive en y=4221 con pantalla de 800, asi que con 2 pantallas de adelanto el refino
      empieza a pedirse desde scrollY~1821, no desde 0.
      FAIL-SAFE: sin IntersectionObserver se pide todo ya mismo (comportamiento de hoy). */
+  function armarMotor(){
   if('IntersectionObserver' in window){
     var lead=Math.round(window.innerHeight*2)+'px';
     var io=new IntersectionObserver(function(es){
-      for(var k=0;k<es.length;k++) if(es[k].isIntersecting){ arrancarFino(); io.disconnect(); break; }
+      for(var k=0;k<es.length;k++) if(es[k].isIntersecting){ arrancarGrueso(); arrancarFino(); io.disconnect(); break; }
     },{rootMargin:lead+' 0px '+lead+' 0px'});
     io.observe(stage);
-  } else { arrancarFino(); }
+  } else { arrancarGrueso(); arrancarFino(); }
+  }
+  if(document.readyState==='complete') armarMotor(); else window.addEventListener('load',armarMotor);
   tick();
 }
 initMotor({stage:'scr-motor-stage',canvas:'scr-motor-canvas',n:137,lut:LUT_MOTOR,
   dirMob:'img/scroll-frames/motor/mob/',dirDesk:'img/scroll-frames/motor/desk/'});
+</script>
+<script>
+/* VEL1: los logos de la cinta están bajo el pliegue pero se pedían al abrir: se piden apenas termina la carga.
+   Mismo archivo y mismo tamaño reservado (width/height). */
+(function(){function poner(){[].forEach.call(document.querySelectorAll('img[data-src^="img/logos/"]'),function(im){im.src=im.getAttribute('data-src');});}
+if(document.readyState==='complete') poner(); else window.addEventListener('load',poner);})();
 </script>
 </body>
 </html>
