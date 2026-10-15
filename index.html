@@ -3,6 +3,7 @@
 <head>
 <base href="rapida/">
 <!-- vel1-motos -->
+<!-- vel2-motos -->
 <!-- VEL1: píxel primero (antes de fuentes, video e imágenes) + conexiones a Meta abiertas desde ya. Mismo PIXEL y mismos eventos. -->
 <link rel="preconnect" href="https://connect.facebook.net">
 <link rel="preconnect" href="https://www.facebook.com">
@@ -769,7 +770,7 @@
                    (.tl): su rotulo y su pie quedan fijos como hijos directos de .pv, que ya
                    son position:absolute -> CERO reglas CSS nuevas. hero.mp4 (248 KB) se borro.
                    Hero: 247.865 B -> 124.957 B (-49,6%) y 2 peticiones .webp menos. -->
-              <video class="hero-uno" src="vid/g1.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="auto"></video>
+              <video class="hero-uno" data-src="vid/g1.mp4" poster="vid/g1.webp" muted loop playsinline autoplay preload="none"></video>
               <span class="tag">Árbol de levas</span>
               <div class="cap">Árbol de levas y cigüeñal<small>Orden de armado + torque de cada tornillo</small></div>
               <span class="rec">Paso a paso</span>
@@ -1630,6 +1631,21 @@ initMotor({stage:'scr-motor-stage',canvas:'scr-motor-canvas',n:137,lut:LUT_MOTOR
    Mismo archivo y mismo tamaño reservado (width/height). */
 (function(){function poner(){[].forEach.call(document.querySelectorAll('img[data-src^="img/logos/"]'),function(im){im.src=im.getAttribute('data-src');});}
 if(document.readyState==='complete') poner(); else window.addEventListener('load',poner);})();
+</script>
+<script>
+/* VEL2: el video de la portada ya no compite con el píxel ni con el primer pantallazo. Mientras tanto se ve su póster
+   (vid/g1.webp, precargado con prioridad alta). El video se pide después de 'load' (que espera a fbevents y su config)
+   y de un momento libre del navegador; arranca solo, igual que antes (muted/loop/autoplay). Mismo archivo. */
+(function(){
+  function arrancar(){
+    [].forEach.call(document.querySelectorAll('video.hero-uno[data-src]'),function(v){
+      v.preload='auto'; v.src=v.getAttribute('data-src'); v.removeAttribute('data-src');
+      var p=v.play(); if(p&&p.catch) p.catch(function(){});
+    });
+  }
+  function luego(){ if('requestIdleCallback' in window) requestIdleCallback(arrancar,{timeout:1500}); else setTimeout(arrancar,200); }
+  if(document.readyState==='complete') luego(); else window.addEventListener('load',luego);
+})();
 </script>
 </body>
 </html>
