@@ -139,15 +139,15 @@
   ::selection{background:#fff;color:#000}
 
   /* BOTONES estilo CapCut: pastilla blanca, texto negro */
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#000;font-family:var(--disp);font-weight:800;letter-spacing:-.01em;font-size:1.05rem;padding:16px 36px;border-radius:999px;border:none;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 10px 44px -10px rgba(255,255,255,.35)}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 16px 56px -10px rgba(255,255,255,.5)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#000;font-family:var(--disp);font-weight:800;letter-spacing:-.01em;font-size:1.05rem;padding:16px 36px;border-radius:999px;border:none;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 8px 26px -6px rgba(255,255,255,.5),0 0 54px -8px rgba(255,255,255,.4)}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 34px -6px rgba(255,255,255,.62),0 0 76px -6px rgba(255,255,255,.55)}
   .btn.big{font-size:1.2rem;padding:20px 46px}
   .btn.ghost{background:transparent;color:#fff;border:1.5px solid #3a3a40;box-shadow:none}
   .btn.ghost:hover{border-color:#fff;box-shadow:none}
   /* ORDEN AZ1: solo los 3 botones DE COMPRA en rojo Yamaha (el del nav queda blanco/negro
      como antes); blanco sobre --red da 4.8:1 AA */
-  #btn-hero,#btn-pago,.buybar .btn{background:var(--red);color:#fff;box-shadow:0 10px 44px -10px rgba(230,0,18,.45)}
-  #btn-hero:hover,#btn-pago:hover,.buybar .btn:hover{box-shadow:0 16px 56px -10px rgba(230,0,18,.6)}
+  #btn-hero,#btn-pago,.buybar .btn{background:var(--red);color:#fff;box-shadow:0 0 0 1px rgba(230,0,18,.5),0 8px 26px -6px rgba(230,0,18,.85),0 0 54px -6px rgba(230,0,18,.6)}
+  #btn-hero:hover,#btn-pago:hover,.buybar .btn:hover{box-shadow:0 0 0 1px rgba(255,74,86,.7),0 14px 34px -6px rgba(230,0,18,1),0 0 76px -4px rgba(230,0,18,.78)}
 
   /* MARCA (marca de corte estilo CapCut) */
   .logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:900;font-size:1.18rem;letter-spacing:-.04em}
@@ -189,9 +189,9 @@
      queries de abajo) para que placa + boton quepan de 320px a 390px. */
   nav .btn{background:var(--red);color:#fff;border:none;border-radius:999px;
     padding:12px 24px;font-family:var(--disp);font-weight:800;font-size:.95rem;letter-spacing:-.01em;
-    text-transform:none;white-space:nowrap;box-shadow:0 10px 44px -10px rgba(230,0,18,.45);
+    text-transform:none;white-space:nowrap;box-shadow:0 0 0 1px rgba(230,0,18,.5),0 8px 26px -6px rgba(230,0,18,.85),0 0 54px -6px rgba(230,0,18,.6);
     transition:transform .15s ease,box-shadow .15s ease}
-  nav .btn:hover{background:var(--red);color:#fff;transform:translateY(-2px);box-shadow:0 16px 56px -10px rgba(230,0,18,.6)}
+  nav .btn:hover{background:var(--red);color:#fff;transform:translateY(-2px);box-shadow:0 0 0 1px rgba(255,74,86,.7),0 14px 34px -6px rgba(230,0,18,1),0 0 76px -4px rgba(230,0,18,.78)}
   /* ===== ORDEN de Esteban 2026-10-13: "me gusta el formato de diseno pero dejemos el
      logo original, solo integralo bien". Vuelve la PLACA COMPLETA (marco rojo doble +
      MOTO DATA + WORKSHOP MANUALS) tal cual la mando, no las letras sueltas.
